@@ -192,16 +192,19 @@ func runCmd(ctx *cli.Context) error {
 	if chainConfig != nil {
 		runtimeConfig.ChainConfig = chainConfig
 	}
+
+	// Run EVM
 	tstart := time.Now()
 	var leftOverGas uint64
 	if ctx.GlobalBool(CreateFlag.Name) {
 		input := append(code, common.Hex2Bytes(ctx.GlobalString(InputFlag.Name))...)
 		ret, _, leftOverGas, err = runtime.Create(input, &runtimeConfig)
 	} else {
+		input := append(code, common.Hex2Bytes(ctx.GlobalString(InputFlag.Name))...)
 		if len(code) > 0 {
 			statedb.SetCode(receiver, code)
 		}
-		ret, leftOverGas, err = runtime.Call(receiver, common.Hex2Bytes(ctx.GlobalString(InputFlag.Name)), &runtimeConfig)
+		ret, leftOverGas, err = runtime.Call(receiver, input, &runtimeConfig)
 	}
 	execTime := time.Since(tstart)
 
@@ -224,6 +227,8 @@ func runCmd(ctx *cli.Context) error {
 	}
 
 	if ctx.GlobalBool(DebugFlag.Name) {
+		fmt.Fprintln(os.Stderr, "sender", sender.Hex())
+		fmt.Fprintln(os.Stderr, "receiver", receiver.Hex())
 		if debugLogger != nil {
 			fmt.Fprintln(os.Stderr, "#### TRACE ####")
 			vm.WriteTrace(os.Stderr, debugLogger.StructLogs())

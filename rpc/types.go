@@ -17,14 +17,21 @@
 package rpc
 
 import (
+	"errors"
 	"fmt"
 	"math"
+	"math/big"
 	"reflect"
 	"strings"
 	"sync"
 
 	mapset "github.com/deckarep/golang-set"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/getkin/kin-openapi/openapi2"
+	"github.com/getkin/kin-openapi/openapi3"
+	"github.com/whilei/happyapi"
 )
 
 // API describes the set of methods offered over the RPC interface
@@ -33,6 +40,49 @@ type API struct {
 	Version   string      // api version for DApp's
 	Service   interface{} // receiver instance which holds the methods
 	Public    bool        // indication if the methods must be considered safe for public use
+}
+
+func (api *API) InitSwagger() *openapi2.Swagger {
+	return &openapi2.Swagger{
+		Info: openapi3.Info{
+			Title:       "Ethereum Services",
+			Description: "RPC API",
+		},
+		// FIXME
+		Host: ":8545",
+	}
+}
+
+func (api *API) IODefaultMethod() string {
+	return "POST"
+}
+
+func (api *API) IODefaultPath(methodName string) string {
+	return api.Namespace + "_" + strings.ToLower(methodName[:1]) + methodName[1:]
+}
+
+func (api *API) IOParamsRegistry() map[reflect.Type]interface{} {
+	return map[reflect.Type]interface{}{
+		reflect.TypeOf(common.Address{}):             common.Address{},
+		reflect.TypeOf(hexutil.Uint64(0)):            hexutil.Uint64(42),
+		reflect.TypeOf(hexutil.Big(*big.NewInt(42))): hexutil.Big(*big.NewInt(42)),
+		reflect.TypeOf(true):                         false,
+		reflect.TypeOf("foo"):                        "bar",
+		reflect.TypeOf(int(42)):                      int(42),
+		reflect.TypeOf(uint64(42)):                   uint64(42),
+		reflect.TypeOf(errors.New("errFoo")):         errors.New("errBar"),
+		reflect.TypeOf(types.Block{}):                types.Block{},
+		reflect.TypeOf(&types.Block{}):               &types.Block{},
+	}
+}
+
+func (api *API) IOMethodsRegistry() map[string]*happyapi.MethodReg {
+	m := make(map[string]*happyapi.MethodReg)
+	return m
+}
+
+func (api *API) Swagger() (*openapi2.Swagger, error) {
+	return happyapi.Swagger(api, api.Service)
 }
 
 // callback is a method callback which was registered in the server

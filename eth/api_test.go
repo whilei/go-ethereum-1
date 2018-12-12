@@ -17,7 +17,6 @@
 package eth
 
 import (
-	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -29,19 +28,19 @@ import (
 
 var dumper = spew.ConfigState{Indent: "    "}
 
-func TestEthAPISwagger(t *testing.T) {
-	api := &PublicEthereumAPI{}
-	swag, err := api.Swagger()
-	// swag, err := happyapi.Swagger(&PublicEthereumAPI{})
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-	b, err := json.MarshalIndent(swag, "", "    ")
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Logf("[swagger] => %s", string(b))
-}
+// func TestEthAPISwagger(t *testing.T) {
+// 	api := &PublicEthereumAPI{}
+// 	swag, err := api.Swagger()
+// 	// swag, err := happyapi.Swagger(&PublicEthereumAPI{})
+// 	// if err != nil {
+// 	// 	t.Fatal(err)
+// 	// }
+// 	b, err := json.MarshalIndent(swag, "", "    ")
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	t.Logf("[swagger] => %s", string(b))
+// }
 
 func TestStorageRangeAt(t *testing.T) {
 	// Create a state where account 0x010000... has a few storage entries.

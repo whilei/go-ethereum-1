@@ -24,6 +24,7 @@ import (
 	"io"
 	"math/big"
 	"os"
+	"reflect"
 	"runtime"
 	"strings"
 	"time"
@@ -39,6 +40,8 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/trie"
+	"github.com/getkin/kin-openapi/openapi2"
+	"github.com/whilei/happyapi"
 )
 
 // PublicEthereumAPI provides an API to access Ethereum full node-related
@@ -50,6 +53,36 @@ type PublicEthereumAPI struct {
 // NewPublicEthereumAPI creates a new Ethereum protocol API for full nodes.
 func NewPublicEthereumAPI(e *Ethereum) *PublicEthereumAPI {
 	return &PublicEthereumAPI{e}
+}
+
+func (api *PublicEthereumAPI) InitSwagger() *openapi2.Swagger {
+	return &openapi2.Swagger{
+		Host: "localhost:8545",
+	}
+}
+
+func (api *PublicEthereumAPI) IODefaultMethod() string {
+	return "POST"
+}
+
+func (api *PublicEthereumAPI) IODefaultPath(methodName string) string {
+	return "eth_" + strings.ToLower(methodName[:1]) + methodName[1:]
+}
+
+func (api *PublicEthereumAPI) IOParamsRegistry() map[reflect.Type]interface{} {
+	return map[reflect.Type]interface{}{
+		reflect.TypeOf(common.Address{}):  common.Address{},
+		reflect.TypeOf(hexutil.Uint64(0)): hexutil.Uint64(42),
+	}
+}
+
+func (api *PublicEthereumAPI) IOMethodsRegistry() map[string]*happyapi.MethodReg {
+	m := make(map[string]*happyapi.MethodReg)
+	return m
+}
+
+func (api *PublicEthereumAPI) Swagger() (*openapi2.Swagger, error) {
+	return happyapi.Swagger(api)
 }
 
 // Etherbase is the address that mining rewards will be send to

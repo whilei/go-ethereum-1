@@ -29,8 +29,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/getkin/kin-openapi/openapi2"
-	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/whilei/happyapi"
 )
 
@@ -42,26 +40,26 @@ type API struct {
 	Public    bool        // indication if the methods must be considered safe for public use
 }
 
-func (api *API) InitSwagger() *openapi2.Swagger {
-	return &openapi2.Swagger{
-		Info: openapi3.Info{
-			Title:       "Ethereum Services",
-			Description: "RPC API",
-		},
-		// FIXME
-		Host: ":8545",
-	}
-}
+// func (api *API) InitSwagger() *openapi2.Swagger {
+// 	return &openapi2.Swagger{
+// 		Info: openapi3.Info{
+// 			Title:       "Ethereum Services",
+// 			Description: "RPC API",
+// 		},
+// 		// FIXME
+// 		Host: ":8545",
+// 	}
+// }
 
-func (api *API) IODefaultMethod() string {
+func (api API) IODefaultMethod() string {
 	return "POST"
 }
 
-func (api *API) IODefaultPath(methodName string) string {
+func (api API) IODefaultPath(methodName string) string {
 	return api.Namespace + "_" + strings.ToLower(methodName[:1]) + methodName[1:]
 }
 
-func (api *API) IOParamsRegistry() map[reflect.Type]interface{} {
+func (api API) IOParamsRegistry() map[reflect.Type]interface{} {
 	return map[reflect.Type]interface{}{
 		reflect.TypeOf(common.Address{}):             common.Address{},
 		reflect.TypeOf(hexutil.Uint64(0)):            hexutil.Uint64(42),
@@ -76,13 +74,9 @@ func (api *API) IOParamsRegistry() map[reflect.Type]interface{} {
 	}
 }
 
-func (api *API) IOMethodsRegistry() map[string]*happyapi.MethodReg {
+func (api API) IOMethodsRegistry() map[string]*happyapi.MethodReg {
 	m := make(map[string]*happyapi.MethodReg)
 	return m
-}
-
-func (api *API) Swagger() (*openapi2.Swagger, error) {
-	return happyapi.Swagger(api, api.Service)
 }
 
 // callback is a method callback which was registered in the server

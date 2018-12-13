@@ -259,7 +259,7 @@ func (s *Ethereum) APIs() []rpc.API {
 	apis = append(apis, s.engine.APIs(s.BlockChain())...)
 
 	// Append all the local APIs and return
-	return append(apis, []rpc.API{
+	apis = append(apis, []rpc.API{
 		{
 			Namespace: "eth",
 			Version:   "1.0",
@@ -305,6 +305,23 @@ func (s *Ethereum) APIs() []rpc.API {
 			Public:    true,
 		},
 	}...)
+
+	services := []interface{}{}
+	for _, s := range apis {
+		services = append(services, s) // WHOLE APIs here, not juse their API.Service. this helps with naming
+	}
+
+	metaAPI := rpc.API{
+		Namespace: "introspect",
+		Version:   "1.0",
+		Public:    true,
+	}
+	introAPI := rpc.NewPublicIntrospectAPI(services)
+	introAPI.API = metaAPI // if this even works... i'll gonna go drink a beer
+	introAPI.Service = introAPI
+
+	apis = append(apis, metaAPI)
+	return apis
 }
 
 func (s *Ethereum) ResetWithGenesisBlock(gb *types.Block) {

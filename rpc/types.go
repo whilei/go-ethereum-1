@@ -28,6 +28,7 @@ import (
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/state"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/whilei/happyapi"
 )
@@ -60,17 +61,27 @@ func (api API) IODefaultPath(methodName string) string {
 }
 
 func (api API) IOParamsRegistry() map[reflect.Type]interface{} {
+	var xUint64 = uint64(42)
+	var xHash = common.HexToHash("0xdeadbeef")
 	return map[reflect.Type]interface{}{
-		reflect.TypeOf(common.Address{}):             common.Address{},
+		reflect.TypeOf(common.Address{}):             common.BigToAddress(big.NewInt(42)),
+		reflect.TypeOf(xHash):                        xHash,
+		reflect.TypeOf(&xHash):                       &xHash,
 		reflect.TypeOf(hexutil.Uint64(0)):            hexutil.Uint64(42),
-		reflect.TypeOf(hexutil.Big(*big.NewInt(42))): hexutil.Big(*big.NewInt(42)),
+		reflect.TypeOf(hexutil.Big(*big.NewInt(0))):  hexutil.Big(*big.NewInt(42)),
 		reflect.TypeOf(true):                         false,
-		reflect.TypeOf("foo"):                        "bar",
-		reflect.TypeOf(int(42)):                      int(42),
-		reflect.TypeOf(uint64(42)):                   uint64(42),
+		reflect.TypeOf(""):                           "bar",
+		reflect.TypeOf(int(0)):                       int(42),
+		reflect.TypeOf(hexutil.Bytes([]byte("bit"))): hexutil.Bytes([]byte("bit")),
+		reflect.TypeOf(xUint64):                      xUint64,
+		reflect.TypeOf(&xUint64):                     &xUint64,
 		reflect.TypeOf(errors.New("errFoo")):         errors.New("errBar"),
 		reflect.TypeOf(types.Block{}):                types.Block{},
 		reflect.TypeOf(&types.Block{}):               &types.Block{},
+		reflect.TypeOf(BlockNumber(0)):               BlockNumber(42),
+		reflect.TypeOf(state.Dump{Root: "0xdeadbeef"}): state.Dump{
+			Root: "0xdeadbeef",
+		},
 	}
 }
 

@@ -363,7 +363,7 @@ func (api *PrivateDebugAPI) StorageRangeAt(ctx context.Context, blockHash common
 }
 
 func storageRangeAt(st state.Trie, start []byte, maxResult int) (StorageRangeResult, error) {
-	it := trie.NewIterator(st.NodeIterator(start))
+
 	result := StorageRangeResult{Storage: storageMap{}}
 	for i := 0; i < maxResult && it.Next(); i++ {
 		_, content, _, err := rlp.Split(it.Value)

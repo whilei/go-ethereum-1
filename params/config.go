@@ -135,7 +135,6 @@ var (
 		nil,           // EIP214Block
 		nil,           // EIP211Block
 		nil,           // EIP649Block
-		nil,           // EIP684Block
 
 		big.NewInt(0), // ConstantinopleBlock
 		nil,           // EIP145Block
@@ -178,7 +177,6 @@ var (
 		nil,           // EIP214Block
 		nil,           // EIP211Block
 		nil,           // EIP649Block
-		nil,           // EIP684Block
 
 		big.NewInt(0), // ConstantinopleBlock
 		nil,           // EIP145Block
@@ -220,7 +218,6 @@ var (
 		nil,           // EIP214Block
 		nil,           // EIP211Block
 		nil,           // EIP649Block
-		nil,           // EIP684Block
 
 		big.NewInt(0), // ConstantinopleBlock
 		nil,           // EIP145Block
@@ -306,10 +303,10 @@ type ChainConfig struct {
 	// metropolis diff bomb delay and reducing block reward
 	// https://github.com/ethereum/EIPs/issues/649
 	EIP649Block *big.Int `json:"eip649Block,omitempty"`
-	// prevent overwriting contracts
-	// NOTE(whilei): NOT CONFIGURABLE
-	// https://github.com/ethereum/EIPs/issues/684
-	EIP684Block *big.Int `json:"eip684Block,omitempty"`
+	// // prevent overwriting contracts
+	// // NOTE(whilei): NOT CONFIGURABLE
+	// // https://github.com/ethereum/EIPs/issues/684
+	// EIP684Block *big.Int `json:"eip684Block,omitempty"`
 
 	// https://github.com/ethereum/pm/wiki/Constantinople-Progress-Tracker
 	ConstantinopleBlock *big.Int `json:"constantinopleBlock,omitempty"` // Constantinople switch block (nil = no fork, 0 = already activated)
@@ -422,7 +419,6 @@ func (c *ChainConfig) IsByzantium(num *big.Int) bool {
 			c.EIP214Block,
 			c.EIP211Block,
 			c.EIP649Block,
-			c.EIP684Block,
 		} {
 			if !isForked(block, n) {
 				return false
@@ -480,13 +476,14 @@ func (c *ChainConfig) IsEIP649(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP649Block, num)
 }
 
-// ???
-// https://github.com/ethereum/EIPs/issues/684
-// https://github.com/ethereum/EIPs/pull/689
-// https://github.com/ethereum/go-ethereum/search?q=684&type=Commits
-func (c *ChainConfig) IsEIP684(num *big.Int) bool {
-	return c.IsByzantium(num) || isForked(c.EIP684Block, num)
-}
+// // ???
+// // https://github.com/ethereum/EIPs/issues/684
+// // https://github.com/ethereum/EIPs/pull/689
+// // https://github.com/ethereum/go-ethereum/search?q=684&type=Commits
+// func (c *ChainConfig) IsEIP684(num *big.Int) bool {
+// 	return c.IsByzantium(num) || isForked(c.EIP684Block, num)
+// }
+// > Currently this is not an issue because there is no way to create a contract with the same address twice without spending >2^80 computational effort to find an address collision, but with #86 this will change. Hence it is important to have correct behavior for this situation in the long term. This can be safely applied retroactively for simplicity, because currently creating a contract with the same address twice is computationally infeasible.
 
 // IsConstantinople returns whether num is either equal to the Constantinople fork block or greater,
 // or whether configured params satisfy all requirements fulfilling the Constantinople fork.
@@ -669,11 +666,11 @@ func (err *ConfigCompatError) Error() string {
 // Rules is a one time interface meaning that it shouldn't be used in between transition
 // phases.
 type Rules struct {
-	ChainID                                                                                                         *big.Int
-	IsHomestead, IsEIP7                                                                                             bool
-	IsEIP150, IsEIP155, IsEIP158                                                                                    bool
-	IsByzantium, IsEIP140, IsEIP658, IsEIP100, IsEIP198, IsEIP212, IsEIP213, IsEIP214, IsEIP211, IsEIP649, IsEIP684 bool
-	IsConstantinople, IsEIP145, IsEIP1014, IsEIP1052, IsEIP1283, IsEIP1234                                          bool
+	ChainID                                                                                               *big.Int
+	IsHomestead, IsEIP7                                                                                   bool
+	IsEIP150, IsEIP155, IsEIP158                                                                          bool
+	IsByzantium, IsEIP140, IsEIP658, IsEIP100, IsEIP198, IsEIP212, IsEIP213, IsEIP214, IsEIP211, IsEIP649 bool
+	IsConstantinople, IsEIP145, IsEIP1014, IsEIP1052, IsEIP1283, IsEIP1234                                bool
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -702,7 +699,6 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		IsEIP214:    c.IsEIP214(num),
 		IsEIP211:    c.IsEIP211(num),
 		IsEIP649:    c.IsEIP649(num),
-		IsEIP684:    c.IsEIP684(num),
 
 		IsConstantinople: c.IsConstantinople(num),
 		IsEIP145:         c.IsEIP145(num),

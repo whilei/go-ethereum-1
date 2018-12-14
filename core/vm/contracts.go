@@ -37,15 +37,6 @@ type PrecompiledContract interface {
 	Run(input []byte) ([]byte, error) // Run runs the precompiled contract
 }
 
-// PrecompiledContractsHomestead contains the default set of pre-compiled Ethereum
-// contracts used in the Frontier and Homestead releases.
-var PrecompiledContractsHomestead = map[common.Address]PrecompiledContract{
-	common.BytesToAddress([]byte{1}): &ecrecover{},
-	common.BytesToAddress([]byte{2}): &sha256hash{},
-	common.BytesToAddress([]byte{3}): &ripemd160hash{},
-	common.BytesToAddress([]byte{4}): &dataCopy{},
-}
-
 // AllPrecompiledContracts returns all possible precompiled contracts.
 var AllPrecompiledContracts = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{1}): &ecrecover{},
@@ -60,7 +51,13 @@ var AllPrecompiledContracts = map[common.Address]PrecompiledContract{
 
 // PrecompiledContracts returns the corresponding set of precompiled contracts for a given chain config and block number.
 func PrecompiledContracts(config *params.ChainConfig, num *big.Int) map[common.Address]PrecompiledContract {
-	var contracts = PrecompiledContractsHomestead
+	// Homestead
+	var contracts = map[common.Address]PrecompiledContract{
+		common.BytesToAddress([]byte{1}): &ecrecover{},
+		common.BytesToAddress([]byte{2}): &sha256hash{},
+		common.BytesToAddress([]byte{3}): &ripemd160hash{},
+		common.BytesToAddress([]byte{4}): &dataCopy{},
+	}
 	if config.IsEIP198(num) {
 		contracts[common.BytesToAddress([]byte{5})] = &bigModExp{}
 	}

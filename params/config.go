@@ -386,6 +386,7 @@ func (c *ChainConfig) IsHomestead(num *big.Int) bool {
 	return isForked(c.HomesteadBlock, num)
 }
 
+// core/vm/jump_table.go:59#instructionSet(config, num)
 func (c *ChainConfig) IsEIP7(num *big.Int) bool {
 	return c.IsHomestead(num) || isForked(c.EIP7Block, num)
 }
@@ -431,44 +432,58 @@ func (c *ChainConfig) IsByzantium(num *big.Int) bool {
 	}(num)
 }
 
+// core/vm/jump_table.go:72#REVERT
 func (c *ChainConfig) IsEIP140(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP140Block, num)
 }
 
+// core/state_processor.go:105 Finalise() statedb
 // Embedding transaction status code in receipts
 func (c *ChainConfig) IsEIP658(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP658Block, num)
 }
 
+// consensus/consensus.go:318: calc difficulty Byzantium
 // Change difficulty adjustment to target mean block time including uncles
 func (c *ChainConfig) IsEIP100(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP100Block, num)
 }
 
+// core/vm/contracts.go:64: precomp:bigmodexp
 func (c *ChainConfig) IsEIP198(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP198Block, num)
 }
 
+// core/vm/contracts.go:67: precomp:bn256 pairing
 func (c *ChainConfig) IsEIP212(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP212Block, num)
 }
 
+// core/vm/contracts.go:70: bn256 add,mul
 func (c *ChainConfig) IsEIP213(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP213Block, num)
 }
 
+// core/vm/jump_table.go:83#STATICCALL
+// core/vm/intepreter.go:114#enforceRestrictions, in.ReadOnly
 func (c *ChainConfig) IsEIP214(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP214Block, num)
 }
 
+// core/vm/jump_table.go:93#RETURNDATASIZE
 func (c *ChainConfig) IsEIP211(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP211Block, num)
 }
 
+// consensus/consensus.go:611:Byzantium block reward
 func (c *ChainConfig) IsEIP649(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP649Block, num)
 }
 
+// ???
+// https://github.com/ethereum/EIPs/issues/684
+// https://github.com/ethereum/EIPs/pull/689
+// https://github.com/ethereum/go-ethereum/search?q=684&type=Commits
 func (c *ChainConfig) IsEIP684(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP684Block, num)
 }
@@ -492,22 +507,27 @@ func (c *ChainConfig) IsConstantinople(num *big.Int) bool {
 	}(num)
 }
 
+// core/vm/jump_table.go:111#SHL,SHR,SAR
 func (c *ChainConfig) IsEIP145(num *big.Int) bool {
 	return c.IsConstantinople(num) || isForked(c.EIP145Block, num)
 }
 
+// core/vm/jump_table.go:131#CREATE2
 func (c *ChainConfig) IsEIP1014(num *big.Int) bool {
 	return c.IsConstantinople(num) || isForked(c.EIP1014Block, num)
 }
 
+// core/vm/jump_table.go:142#EXTCODEHASH
 func (c *ChainConfig) IsEIP1052(num *big.Int) bool {
 	return c.IsConstantinople(num) || isForked(c.EIP1052Block, num)
 }
 
+// core/vm/gas_table.go:124#gasSStore
 func (c *ChainConfig) IsEIP1283(num *big.Int) bool {
 	return c.IsConstantinople(num) || isForked(c.EIP1283Block, num)
 }
 
+// consensus/consensus.go:614:Constantinople block reward
 func (c *ChainConfig) IsEIP1234(num *big.Int) bool {
 	return c.IsConstantinople(num) || isForked(c.EIP1234Block, num)
 }

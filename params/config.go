@@ -126,22 +126,22 @@ var (
 		big.NewInt(0), // EIP158Block
 
 		big.NewInt(0), // ByzantiumBlock
-		nil,           // EIP140Block
-		nil,           // EIP658Block
 		nil,           // EIP100Block
+		nil,           // EIP140Block
 		nil,           // EIP198Block
+		nil,           // EIP211Block
 		nil,           // EIP212Block
 		nil,           // EIP213Block
 		nil,           // EIP214Block
-		nil,           // EIP211Block
 		nil,           // EIP649Block
+		nil,           // EIP658Block
 
 		big.NewInt(0), // ConstantinopleBlock
 		nil,           // EIP145Block
 		nil,           // EIP1014Block
 		nil,           // EIP1052Block
-		nil,           // EIP1283Block
 		nil,           // EIP1234Block
+		nil,           // EIP1283Block
 
 		nil,               // EWASMBlock
 		new(EthashConfig), // Ethash
@@ -168,22 +168,22 @@ var (
 		big.NewInt(0), // EIP158Block
 
 		big.NewInt(0), // ByzantiumBlock
-		nil,           // EIP140Block
-		nil,           // EIP658Block
 		nil,           // EIP100Block
+		nil,           // EIP140Block
 		nil,           // EIP198Block
+		nil,           // EIP211Block
 		nil,           // EIP212Block
 		nil,           // EIP213Block
 		nil,           // EIP214Block
-		nil,           // EIP211Block
 		nil,           // EIP649Block
+		nil,           // EIP658Block
 
 		big.NewInt(0), // ConstantinopleBlock
 		nil,           // EIP145Block
 		nil,           // EIP1014Block
 		nil,           // EIP1052Block
-		nil,           // EIP1283Block
 		nil,           // EIP1234Block
+		nil,           // EIP1283Block
 
 		nil, // EWASMBlock
 		nil, // Ethash
@@ -209,22 +209,22 @@ var (
 		big.NewInt(0), // EIP158Block
 
 		big.NewInt(0), // ByzantiumBlock
-		nil,           // EIP140Block
-		nil,           // EIP658Block
 		nil,           // EIP100Block
+		nil,           // EIP140Block
 		nil,           // EIP198Block
+		nil,           // EIP211Block
 		nil,           // EIP212Block
 		nil,           // EIP213Block
 		nil,           // EIP214Block
-		nil,           // EIP211Block
 		nil,           // EIP649Block
+		nil,           // EIP658Block
 
 		big.NewInt(0), // ConstantinopleBlock
 		nil,           // EIP145Block
 		nil,           // EIP1014Block
 		nil,           // EIP1052Block
-		nil,           // EIP1283Block
 		nil,           // EIP1234Block
+		nil,           // EIP1283Block
 
 		nil,               // EWASMBlock
 		new(EthashConfig), // Ethash
@@ -274,20 +274,18 @@ type ChainConfig struct {
 	// https://github.com/ethereum/go-ethereum/releases/tag/v1.7.0
 	ByzantiumBlock *big.Int `json:"byzantiumBlock,omitempty"` // Byzantium switch block (nil = no fork, 0 = already on byzantium)
 	//
-	// REVERT instruction
-	// https://eips.ethereum.org/EIPS/eip-140
-	EIP140Block *big.Int `json:"eip140Block,omitempty"`
-	// transaction receipt status
-	// https://github.com/ethereum/EIPs/issues/98
-	// https://github.com/ethereum/EIPs/issues/98#issuecomment-318670322
-	// https://github.com/ethereum/EIPs/issues/658
-	EIP658Block *big.Int `json:"eip658Block,omitempty"`
 	// Change difficulty adjustment to target mean block time including uncles
 	// https://github.com/ethereum/EIPs/issues/100
 	EIP100Block *big.Int `json:"eip100Block,omitempty"`
+	// REVERT instruction
+	// https://eips.ethereum.org/EIPS/eip-140
+	EIP140Block *big.Int `json:"eip140Block,omitempty"`
 	// Create bigint_modexp
 	// https://github.com/ethereum/EIPs/issues/198
 	EIP198Block *big.Int `json:"eip198Block,omitempty"`
+	// RETURNDATACOPY, RETURNDATASIZE
+	// https://github.com/ethereum/EIPs/issues/211
+	EIP211Block *big.Int `json:"eip211Block,omitempty"`
 	// Precompiled contract for pairing check
 	// https://github.com/ethereum/EIPs/issues/212
 	EIP212Block *big.Int `json:"eip212Block,omitempty"`
@@ -297,12 +295,14 @@ type ChainConfig struct {
 	// STATICCALL
 	// https://github.com/ethereum/EIPs/issues/214
 	EIP214Block *big.Int `json:"eip214Block,omitempty"`
-	// RETURNDATACOPY, RETURNDATASIZE
-	// https://github.com/ethereum/EIPs/issues/211
-	EIP211Block *big.Int `json:"eip211Block,omitempty"`
 	// metropolis diff bomb delay and reducing block reward
 	// https://github.com/ethereum/EIPs/issues/649
 	EIP649Block *big.Int `json:"eip649Block,omitempty"`
+	// transaction receipt status
+	// https://github.com/ethereum/EIPs/issues/98
+	// https://github.com/ethereum/EIPs/issues/98#issuecomment-318670322
+	// https://github.com/ethereum/EIPs/issues/658
+	EIP658Block *big.Int `json:"eip658Block,omitempty"`
 	// // prevent overwriting contracts
 	// // NOTE(whilei): NOT CONFIGURABLE
 	// // https://github.com/ethereum/EIPs/issues/684
@@ -320,12 +320,12 @@ type ChainConfig struct {
 	// extcodehash
 	// https://eips.ethereum.org/EIPS/eip-1052
 	EIP1052Block *big.Int `json:"eip1052Block,omitempty"`
-	// net gas metering
-	// https://eips.ethereum.org/EIPS/eip-1283
-	EIP1283Block *big.Int `json:"eip1283Block,omitempty"`
 	// constantinople difficulty bomb delay and block reward adjustment
 	// https://eips.ethereum.org/EIPS/eip-1234
 	EIP1234Block *big.Int `json:"eip1234Block,omitempty"`
+	// net gas metering
+	// https://eips.ethereum.org/EIPS/eip-1283
+	EIP1283Block *big.Int `json:"eip1283Block,omitempty"`
 
 	EWASMBlock *big.Int `json:"ewasmBlock,omitempty"` // EWASM switch block (nil = no fork, 0 = already activated)
 

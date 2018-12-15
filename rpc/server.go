@@ -25,6 +25,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/davecgh/go-spew/spew"
 	mapset "github.com/deckarep/golang-set"
 	"github.com/ethereum/go-ethereum/log"
 )
@@ -81,21 +82,30 @@ func (s *Server) RegisterName(name string, rcvr interface{}) error {
 		s.services = make(serviceRegistry)
 	}
 
+	// if rcvr == nil {
+	// 	return
+	// }
+
+	// rcvr ~= rpc.API.Service
 	svc := new(service)
 	svc.typ = reflect.TypeOf(rcvr)
 	rcvrVal := reflect.ValueOf(rcvr)
 
 	if name == "" {
-		return fmt.Errorf("no service name for type %s", svc.typ.String())
+		panic("no name")
+		// return fmt.Errorf("no service name for type %s", svc.typ.String())
 	}
 	if !isExported(reflect.Indirect(rcvrVal).Type().Name()) {
-		return fmt.Errorf("%s is not exported", reflect.Indirect(rcvrVal).Type().Name())
+		panic("no epxorted")
+		// return fmt.Errorf("%s is not exported", reflect.Indirect(rcvrVal).Type().Name())
 	}
 
+	// TODO(whilei)
 	methods, subscriptions := suitableCallbacks(rcvrVal, svc.typ)
 
 	if len(methods) == 0 && len(subscriptions) == 0 {
-		return fmt.Errorf("Service %T doesn't have any suitable methods/subscriptions to expose", rcvr)
+		panic("no suitable methsdescs")
+		// return fmt.Errorf("Service %T doesn't have any suitable methods/subscriptions to expose", rcvr)
 	}
 
 	// already a previous service register under given name, merge methods/subscriptions
@@ -113,6 +123,7 @@ func (s *Server) RegisterName(name string, rcvr interface{}) error {
 	svc.callbacks, svc.subscriptions = methods, subscriptions
 
 	s.services[svc.name] = svc
+	log.Debug("OK Service:", spew.Sdump(s))
 	return nil
 }
 

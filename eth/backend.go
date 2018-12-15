@@ -314,11 +314,13 @@ func (s *Ethereum) APIs() []rpc.API {
 	metaAPI := rpc.API{
 		Namespace: "introspect",
 		Version:   "1.0",
+		Service:   rpc.NewPublicIntrospectAPI(services),
 		Public:    true,
 	}
-	introAPI := rpc.NewPublicIntrospectAPI(services)
-	introAPI.API = metaAPI // if this even works... i'll gonna go drink a beer
-	introAPI.Service = introAPI
+
+	// metaAPI.Service = rpc.NewPublicIntrospectAPI(services)
+	// introAPI.API = metaAPI // if this even works... i'll gonna go drink a beer
+	// introAPI.Service = introAPI
 
 	apis = append(apis, metaAPI)
 	return apis

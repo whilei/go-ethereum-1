@@ -57,9 +57,7 @@ func (api API) IODefaultMethod() string {
 }
 
 func (api API) IODefaultPath(methodName string) string {
-	// return formatName(methodName)
 	return api.Namespace + "_" + formatName(methodName)
-	// return api.Namespace + "_" + strings.ToLower(methodName[:1]) + methodName[1:]
 }
 
 func (api API) IOParamsRegistry() map[reflect.Type]interface{} {
@@ -106,6 +104,7 @@ func (api API) IOMethodsRegistry() map[string]*happyapi.MethodReg {
 }
 
 // callback is a method callback which was registered in the server
+// TODO(whilei)
 type callback struct {
 	rcvr        reflect.Value  // receiver of method
 	method      reflect.Method // callback

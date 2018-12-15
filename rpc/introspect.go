@@ -1,7 +1,6 @@
 package rpc
 
 import (
-	"encoding/json"
 	"log"
 	"strings"
 
@@ -21,7 +20,7 @@ func NewPublicIntrospectAPI(servicesIn []interface{}) *PublicIntrospectAPI {
 }
 
 // TODO return schema type
-func (api *PublicIntrospectAPI) Swagger() ([]byte, error) {
+func (api *PublicIntrospectAPI) Swagger() (*openapi3.Swagger, error) {
 	var err error
 	swag := &openapi3.Swagger{
 		Info: openapi3.Info{
@@ -48,5 +47,7 @@ func (api *PublicIntrospectAPI) Swagger() ([]byte, error) {
 			return nil, err
 		}
 	}
-	return json.MarshalIndent(swag, "", "    ")
+	return swag, err
+	// o, err := json.MarshalIndent(swag, "", "    ")
+	// return string(o), err
 }

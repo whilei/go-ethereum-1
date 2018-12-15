@@ -408,18 +408,30 @@ func (c *ChainConfig) IsEIP158(num *big.Int) bool {
 	return isForked(c.EIP158Block, num)
 }
 
+type Fork string
+
+// type ForkFeature string
+
+//ByzantiumForkBlocks returns the canonical blocks configured for the Byzantium Fork (ETH).
+func (c *ChainConfig) ByzantiumForkBlocks() []*big.Int {
+	return []*big.Int{
+		c.EIP100Block,
+		c.EIP140Block,
+		c.EIP198Block,
+		c.EIP211Block,
+		c.EIP212Block,
+		c.EIP213Block,
+		c.EIP214Block,
+		c.EIP649Block,
+		c.EIP658Block,
+	}
+}
+
 // IsByzantium returns whether num is either equal to the Byzantium fork block or greater,
 // or whether the configured params satisfy all requirements fulfilling the Byzantium fork.
 func (c *ChainConfig) IsByzantium(num *big.Int) bool {
-	return isForked(c.ConstantinopleBlock, num) || func(n *big.Int) bool {
-		for _, block := range []*big.Int{
-			c.EIP198Block,
-			c.EIP212Block,
-			c.EIP213Block,
-			c.EIP214Block,
-			c.EIP211Block,
-			c.EIP649Block,
-		} {
+	return isForked(c.ByzantiumBlock, num) || func(n *big.Int) bool {
+		for _, block := range c.ByzantiumForkBlocks() {
 			if !isForked(block, n) {
 				return false
 			}
@@ -428,26 +440,25 @@ func (c *ChainConfig) IsByzantium(num *big.Int) bool {
 	}(num)
 }
 
-// core/vm/jump_table.go:72#REVERT
-func (c *ChainConfig) IsEIP140(num *big.Int) bool {
-	return c.IsByzantium(num) || isForked(c.EIP140Block, num)
-}
-
-// core/state_processor.go:105 Finalise() statedb
-// Embedding transaction status code in receipts
-func (c *ChainConfig) IsEIP658(num *big.Int) bool {
-	return c.IsByzantium(num) || isForked(c.EIP658Block, num)
-}
-
 // consensus/consensus.go:318: calc difficulty Byzantium
 // Change difficulty adjustment to target mean block time including uncles
 func (c *ChainConfig) IsEIP100(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP100Block, num)
 }
 
+// core/vm/jump_table.go:72#REVERT
+func (c *ChainConfig) IsEIP140(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP140Block, num)
+}
+
 // core/vm/contracts.go:64: precomp:bigmodexp
 func (c *ChainConfig) IsEIP198(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP198Block, num)
+}
+
+// core/vm/jump_table.go:93#RETURNDATASIZE
+func (c *ChainConfig) IsEIP211(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP211Block, num)
 }
 
 // core/vm/contracts.go:67: precomp:bn256 pairing
@@ -466,14 +477,15 @@ func (c *ChainConfig) IsEIP214(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP214Block, num)
 }
 
-// core/vm/jump_table.go:93#RETURNDATASIZE
-func (c *ChainConfig) IsEIP211(num *big.Int) bool {
-	return c.IsByzantium(num) || isForked(c.EIP211Block, num)
-}
-
 // consensus/consensus.go:611:Byzantium block reward
 func (c *ChainConfig) IsEIP649(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP649Block, num)
+}
+
+// core/state_processor.go:105 Finalise() statedb
+// Embedding transaction status code in receipts
+func (c *ChainConfig) IsEIP658(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP658Block, num)
 }
 
 // // ???
@@ -485,17 +497,22 @@ func (c *ChainConfig) IsEIP649(num *big.Int) bool {
 // }
 // > Currently this is not an issue because there is no way to create a contract with the same address twice without spending >2^80 computational effort to find an address collision, but with #86 this will change. Hence it is important to have correct behavior for this situation in the long term. This can be safely applied retroactively for simplicity, because currently creating a contract with the same address twice is computationally infeasible.
 
+// ConstantinopleForkBlocks returns the canonical blocks configured for the Constantinople Fork (ETH).
+func (c *ChainConfig) ConstantinopleForkBlocks() []*big.Int {
+	return []*big.Int{
+		c.EIP145Block,
+		c.EIP1014Block,
+		c.EIP1052Block,
+		c.EIP1283Block,
+		c.EIP1234Block,
+	}
+}
+
 // IsConstantinople returns whether num is either equal to the Constantinople fork block or greater,
 // or whether configured params satisfy all requirements fulfilling the Constantinople fork.
 func (c *ChainConfig) IsConstantinople(num *big.Int) bool {
 	return isForked(c.ConstantinopleBlock, num) || func(n *big.Int) bool {
-		for _, block := range []*big.Int{
-			c.EIP145Block,
-			c.EIP1014Block,
-			c.EIP1052Block,
-			c.EIP1283Block,
-			c.EIP1234Block,
-		} {
+		for _, block := range c.ConstantinopleForkBlocks() {
 			if !isForked(block, n) {
 				return false
 			}

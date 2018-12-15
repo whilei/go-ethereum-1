@@ -22,6 +22,19 @@ import (
 	"testing"
 )
 
+func TestIsByzantiumSanity(t *testing.T) {
+	c := MainnetChainConfig
+	if l := len(c.ByzantiumForkBlocks()); l != 9 {
+		t.Error("want:", 0, "got:", l)
+	}
+	if c.IsByzantium(big.NewInt(100)) {
+		t.Error("100 is byz")
+	}
+	if !c.IsByzantium(big.NewInt(10000000)) {
+		t.Error("100000000 is not byz")
+	}
+}
+
 func TestCheckCompatible(t *testing.T) {
 	type test struct {
 		stored, new *ChainConfig

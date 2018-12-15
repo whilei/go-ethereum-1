@@ -40,7 +40,7 @@ func (api *PublicIntrospectAPI) Swagger() ([]byte, error) {
 		log.Println("adding swag for", ss.Namespace)
 
 		defaultPath := func(methodName string) string {
-			return ss.Namespace + "_" + strings.ToLower(methodName[:1]) + methodName[1:]
+			return ss.Namespace + "/" + strings.ToLower(methodName[:1]) + methodName[1:]
 		}
 
 		_, err = happyapi.Swagger(api.API, swag, ss.Service, defaultMethod, defaultPath)

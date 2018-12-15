@@ -57,32 +57,47 @@ func (api API) IODefaultMethod() string {
 }
 
 func (api API) IODefaultPath(methodName string) string {
-	return api.Namespace + "_" + strings.ToLower(methodName[:1]) + methodName[1:]
+	// return formatName(methodName)
+	return api.Namespace + "_" + formatName(methodName)
+	// return api.Namespace + "_" + strings.ToLower(methodName[:1]) + methodName[1:]
 }
 
 func (api API) IOParamsRegistry() map[reflect.Type]interface{} {
 	var xUint64 = uint64(42)
 	var xHash = common.HexToHash("0xdeadbeef")
-	return map[reflect.Type]interface{}{
-		reflect.TypeOf(common.Address{}):             common.BigToAddress(big.NewInt(42)),
-		reflect.TypeOf(xHash):                        xHash,
-		reflect.TypeOf(&xHash):                       &xHash,
-		reflect.TypeOf(hexutil.Uint64(0)):            hexutil.Uint64(42),
-		reflect.TypeOf(hexutil.Big(*big.NewInt(0))):  hexutil.Big(*big.NewInt(42)),
-		reflect.TypeOf(true):                         false,
-		reflect.TypeOf(""):                           "bar",
-		reflect.TypeOf(int(0)):                       int(42),
-		reflect.TypeOf(hexutil.Bytes([]byte("bit"))): hexutil.Bytes([]byte("bit")),
-		reflect.TypeOf(xUint64):                      xUint64,
-		reflect.TypeOf(&xUint64):                     &xUint64,
-		reflect.TypeOf(errors.New("errFoo")):         errors.New("errBar"),
-		reflect.TypeOf(types.Block{}):                types.Block{},
-		reflect.TypeOf(&types.Block{}):               &types.Block{},
-		reflect.TypeOf(BlockNumber(0)):               BlockNumber(42),
-		reflect.TypeOf(state.Dump{Root: "0xdeadbeef"}): state.Dump{
+	var xAddress = common.HexToAddress("0xdeadbeef")
+	var xError = errors.New("err: want bar got baz")
+
+	var examples = []interface{}{
+		xUint64,
+		&xUint64,
+		xHash,
+		&xHash,
+		xAddress,
+		&xAddress,
+
+		hexutil.Uint64(42),
+		hexutil.Big(*big.NewInt(42)),
+		false,
+		"bar",
+		int(42),
+		hexutil.Bytes([]byte("bit")),
+		types.Block{},
+		&types.Block{},
+		BlockNumber(42),
+		state.Dump{
 			Root: "0xdeadbeef",
 		},
 	}
+
+	var ret = make(map[reflect.Type]interface{})
+	for _, x := range examples {
+		ret[reflect.TypeOf(x)] = x
+	}
+
+	ret[errorType] = xError
+
+	return ret
 }
 
 func (api API) IOMethodsRegistry() map[string]*happyapi.MethodReg {

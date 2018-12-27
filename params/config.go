@@ -488,15 +488,6 @@ func (c *ChainConfig) IsEIP658(num *big.Int) bool {
 	return c.IsByzantium(num) || isForked(c.EIP658Block, num)
 }
 
-// // ???
-// // https://github.com/ethereum/EIPs/issues/684
-// // https://github.com/ethereum/EIPs/pull/689
-// // https://github.com/ethereum/go-ethereum/search?q=684&type=Commits
-// func (c *ChainConfig) IsEIP684(num *big.Int) bool {
-// 	return c.IsByzantium(num) || isForked(c.EIP684Block, num)
-// }
-// > Currently this is not an issue because there is no way to create a contract with the same address twice without spending >2^80 computational effort to find an address collision, but with #86 this will change. Hence it is important to have correct behavior for this situation in the long term. This can be safely applied retroactively for simplicity, because currently creating a contract with the same address twice is computationally infeasible.
-
 // ConstantinopleForkBlocks returns the canonical blocks configured for the Constantinople Fork (ETH).
 func (c *ChainConfig) ConstantinopleForkBlocks() []*big.Int {
 	return []*big.Int{

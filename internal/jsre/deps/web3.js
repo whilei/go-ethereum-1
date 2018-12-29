@@ -2617,6 +2617,10 @@ var properties = function () {
             name: 'version.whisper',
             getter: 'shh_version',
             inputFormatter: utils.toDecimal
+        }),
+        new Property({
+            name: 'introspect.swagger',
+            getter: 'introspect_swagger'
         })
     ];
 };

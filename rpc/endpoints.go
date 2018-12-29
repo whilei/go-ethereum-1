@@ -30,6 +30,7 @@ func StartHTTPEndpoint(endpoint string, apis []API, modules []string, cors []str
 		whitelist[module] = true
 	}
 	// Register all the APIs exposed by the services
+
 	handler := NewServer()
 	for _, api := range apis {
 		if whitelist[api.Namespace] || (len(whitelist) == 0 && api.Public) {

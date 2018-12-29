@@ -17,14 +17,20 @@
 package rpc
 
 import (
+	"errors"
 	"fmt"
 	"math"
+	"math/big"
 	"reflect"
 	"strings"
 	"sync"
 
 	mapset "github.com/deckarep/golang-set"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core/state"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/whilei/happyapi"
 )
 
 // API describes the set of methods offered over the RPC interface
@@ -35,7 +41,70 @@ type API struct {
 	Public    bool        // indication if the methods must be considered safe for public use
 }
 
+// func (api *API) InitSwagger() *openapi2.Swagger {
+// 	return &openapi2.Swagger{
+// 		Info: openapi3.Info{
+// 			Title:       "Ethereum Services",
+// 			Description: "RPC API",
+// 		},
+// 		// FIXME
+// 		Host: ":8545",
+// 	}
+// }
+
+func (api API) IODefaultMethod() string {
+	return "POST"
+}
+
+func (api API) IODefaultPath(methodName string) string {
+	return api.Namespace + "_" + formatName(methodName)
+}
+
+func (api API) IOParamsRegistry() map[reflect.Type]interface{} {
+	var xUint64 = uint64(42)
+	var xHash = common.HexToHash("0xdeadbeef")
+	var xAddress = common.HexToAddress("0xdeadbeef")
+	var xError = errors.New("err: want bar got baz")
+
+	var examples = []interface{}{
+		xUint64,
+		&xUint64,
+		xHash,
+		&xHash,
+		xAddress,
+		&xAddress,
+
+		hexutil.Uint64(42),
+		hexutil.Big(*big.NewInt(42)),
+		false,
+		"bar",
+		int(42),
+		hexutil.Bytes([]byte("bit")),
+		types.Block{},
+		&types.Block{},
+		BlockNumber(42),
+		state.Dump{
+			Root: "0xdeadbeef",
+		},
+	}
+
+	var ret = make(map[reflect.Type]interface{})
+	for _, x := range examples {
+		ret[reflect.TypeOf(x)] = x
+	}
+
+	ret[errorType] = xError
+
+	return ret
+}
+
+func (api API) IOMethodsRegistry() map[string]*happyapi.MethodReg {
+	m := make(map[string]*happyapi.MethodReg)
+	return m
+}
+
 // callback is a method callback which was registered in the server
+// TODO(whilei)
 type callback struct {
 	rcvr        reflect.Value  // receiver of method
 	method      reflect.Method // callback

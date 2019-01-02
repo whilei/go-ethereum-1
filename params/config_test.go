@@ -20,7 +20,86 @@ import (
 	"math/big"
 	"reflect"
 	"testing"
+
+	"github.com/ethereum/go-ethereum/common"
 )
+
+// TestHardForkMethods tries to test the congruence of HF/EIP config blocks and methods.
+// It might be one enormous tautology, but at least it looks comprehensive.
+func TestHardForkMethods(t *testing.T) {
+	mainc := MainnetChainConfig
+	// test fork/eip counts
+	type testCase struct {
+		name              string
+		hardforkBlock     *big.Int
+		hardforkForkFn    func(*big.Int) bool
+		hardforkEIPBlocks []*big.Int
+		hardForkEIPFns    []func(*big.Int) bool
+		len               int // testing the length of the expected fork/eip blocks ensures that at least we can count properly
+	}
+	buildTestCasesForConfig := func(conf *ChainConfig) []testCase {
+		return []testCase{
+			{"Homestead", mainc.HomesteadBlock, mainc.IsHomestead, []*big.Int{mainc.EIP7Block}, []func(*big.Int) bool{
+				mainc.IsEIP7,
+			}, 1},
+			{"Byzantium", mainc.ByzantiumBlock, mainc.IsByzantium, mainc.ByzantiumEIPBlocks(), []func(*big.Int) bool{
+				mainc.IsEIP100,
+				mainc.IsEIP140,
+				mainc.IsEIP198,
+				mainc.IsEIP211,
+				mainc.IsEIP212,
+				mainc.IsEIP213,
+				mainc.IsEIP214,
+				mainc.IsEIP649,
+				mainc.IsEIP658,
+			}, 9},
+			{"Constantinople", mainc.ConstantinopleBlock, mainc.IsConstantinople, mainc.ConstantinopleEIPBlocks(), []func(*big.Int) bool{
+				mainc.IsEIP145,
+				mainc.IsEIP1014,
+				mainc.IsEIP1052,
+				mainc.IsEIP1283,
+				mainc.IsEIP1234,
+			}, 5},
+		}
+	}
+	createTestBlockVals := func(bl *big.Int) (vals []*big.Int) {
+		vals = append(vals, new(big.Int))
+		if bl == nil {
+			return
+		}
+		vals = append(vals, new(big.Int).Sub(bl, common.Big1))
+		vals = append(vals, new(big.Int).Set(bl))
+		vals = append(vals, new(big.Int).Add(bl, common.Big1))
+		return
+	}
+	testHFEIPFns := func(name string, n *big.Int, isHF func(*big.Int) bool, isEIPs []func(*big.Int) bool) {
+		for i, v := range createTestBlockVals(n) {
+			for j, f := range isEIPs {
+				if isHF(v) != f(v) {
+					t.Errorf("i: %v, j: %v, want: %v, got: %v", i, j, isHF(v), f(v))
+				}
+			}
+		}
+	}
+	runInterchangeabilityTest := func(tc testCase, f func(name string, n *big.Int, isHF func(*big.Int) bool, isEIPs []func(*big.Int) bool)) {
+		f(tc.name, tc.hardforkBlock, tc.hardforkForkFn, tc.hardForkEIPFns)
+		for k := range tc.hardforkEIPBlocks {
+			tc.hardforkEIPBlocks[k] = new(big.Int).Set(tc.hardforkBlock)
+		}
+		f(tc.name, tc.hardforkBlock, tc.hardforkForkFn, tc.hardForkEIPFns)
+		tc.hardforkBlock = nil
+		f(tc.name, tc.hardforkBlock, tc.hardforkForkFn, tc.hardForkEIPFns)
+	}
+	for _, conf := range []*ChainConfig{MainnetChainConfig, TestnetChainConfig, RinkebyChainConfig, AllEthashProtocolChanges, AllCliqueProtocolChanges} {
+		for i, c := range buildTestCasesForConfig(conf) {
+			got := len(c.hardforkEIPBlocks)
+			if got != c.len {
+				t.Errorf("i: %d, want: %v, got: %v", i, c.len, got)
+			}
+			runInterchangeabilityTest(c, testHFEIPFns)
+		}
+	}
+}
 
 func TestCheckCompatible(t *testing.T) {
 	type test struct {

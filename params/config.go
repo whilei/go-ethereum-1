@@ -111,17 +111,127 @@ var (
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllEthashProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil}
+	AllEthashProtocolChanges = &ChainConfig{
+		big.NewInt(1337), // ChainID
+
+		big.NewInt(0), // HomesteadBlock
+		nil,           // EIP7Block
+
+		nil,   // DAOForkBlock
+		false, // DAOForkSupport
+
+		big.NewInt(0), // EIP150Block
+		common.Hash{}, // EIP150Hash
+		big.NewInt(0), // EIP155Block
+		big.NewInt(0), // EIP158Block
+
+		big.NewInt(0), // ByzantiumBlock
+		nil,           // EIP100Block
+		nil,           // EIP140Block
+		nil,           // EIP198Block
+		nil,           // EIP211Block
+		nil,           // EIP212Block
+		nil,           // EIP213Block
+		nil,           // EIP214Block
+		nil,           // EIP649Block
+		nil,           // EIP658Block
+
+		big.NewInt(0), // ConstantinopleBlock
+		nil,           // EIP145Block
+		nil,           // EIP1014Block
+		nil,           // EIP1052Block
+		nil,           // EIP1234Block
+		nil,           // EIP1283Block
+
+		nil,               // EWASMBlock
+		new(EthashConfig), // Ethash
+		nil,               // Clique
+	}
 
 	// AllCliqueProtocolChanges contains every protocol change (EIPs) introduced
 	// and accepted by the Ethereum core developers into the Clique consensus.
 	//
 	// This configuration is intentionally not using keyed fields to force anyone
 	// adding flags to the config to also have to set these fields.
-	AllCliqueProtocolChanges = &ChainConfig{big.NewInt(1337), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, nil, &CliqueConfig{Period: 0, Epoch: 30000}}
+	AllCliqueProtocolChanges = &ChainConfig{
+		big.NewInt(1337), // ChainID
 
-	TestChainConfig = &ChainConfig{big.NewInt(1), big.NewInt(0), nil, false, big.NewInt(0), common.Hash{}, big.NewInt(0), big.NewInt(0), big.NewInt(0), big.NewInt(0), nil, new(EthashConfig), nil}
-	TestRules       = TestChainConfig.Rules(new(big.Int))
+		big.NewInt(0), // HomesteadBlock
+		nil,           // EIP7Block
+
+		nil,   // DAOForkBlock
+		false, // DAOForkSupport
+
+		big.NewInt(0), // EIP150Block
+		common.Hash{}, // EIP150Hash
+		big.NewInt(0), // EIP155Block
+		big.NewInt(0), // EIP158Block
+
+		big.NewInt(0), // ByzantiumBlock
+		nil,           // EIP100Block
+		nil,           // EIP140Block
+		nil,           // EIP198Block
+		nil,           // EIP211Block
+		nil,           // EIP212Block
+		nil,           // EIP213Block
+		nil,           // EIP214Block
+		nil,           // EIP649Block
+		nil,           // EIP658Block
+
+		big.NewInt(0), // ConstantinopleBlock
+		nil,           // EIP145Block
+		nil,           // EIP1014Block
+		nil,           // EIP1052Block
+		nil,           // EIP1234Block
+		nil,           // EIP1283Block
+
+		nil, // EWASMBlock
+		nil, // Ethash
+		&CliqueConfig{
+			Period: 0,
+			Epoch:  30000,
+		},
+	}
+
+	// TestChainConfig is used for tests.
+	TestChainConfig = &ChainConfig{
+		big.NewInt(1), // ChainID
+
+		big.NewInt(0), // HomesteadBlock
+		nil,           // EIP7Block
+
+		nil,   // DAOForkBlock
+		false, // DAOForkSupport
+
+		big.NewInt(0), // EIP150Block
+		common.Hash{}, // EIP150Hash
+		big.NewInt(0), // EIP155Block
+		big.NewInt(0), // EIP158Block
+
+		big.NewInt(0), // ByzantiumBlock
+		nil,           // EIP100Block
+		nil,           // EIP140Block
+		nil,           // EIP198Block
+		nil,           // EIP211Block
+		nil,           // EIP212Block
+		nil,           // EIP213Block
+		nil,           // EIP214Block
+		nil,           // EIP649Block
+		nil,           // EIP658Block
+
+		big.NewInt(0), // ConstantinopleBlock
+		nil,           // EIP145Block
+		nil,           // EIP1014Block
+		nil,           // EIP1052Block
+		nil,           // EIP1234Block
+		nil,           // EIP1283Block
+
+		nil,               // EWASMBlock
+		new(EthashConfig), // Ethash
+		nil,               // Clique
+	}
+
+	TestRules = TestChainConfig.Rules(new(big.Int))
 )
 
 // TrustedCheckpoint represents a set of post-processed trie roots (CHT and
@@ -145,6 +255,10 @@ type ChainConfig struct {
 	ChainID *big.Int `json:"chainId"` // chainId identifies the current chain and is used for replay protection
 
 	HomesteadBlock *big.Int `json:"homesteadBlock,omitempty"` // Homestead switch block (nil = no fork, 0 = already homestead)
+	//
+	// DELEGATECALL
+	// https://eips.ethereum.org/EIPS/eip-7
+	EIP7Block *big.Int `json:"eip7Block,omitempy"`
 
 	DAOForkBlock   *big.Int `json:"daoForkBlock,omitempty"`   // TheDAO hard-fork switch block (nil = no fork)
 	DAOForkSupport bool     `json:"daoForkSupport,omitempty"` // Whether the nodes supports or opposes the DAO hard-fork
@@ -156,9 +270,63 @@ type ChainConfig struct {
 	EIP155Block *big.Int `json:"eip155Block,omitempty"` // EIP155 HF block
 	EIP158Block *big.Int `json:"eip158Block,omitempty"` // EIP158 HF block
 
-	ByzantiumBlock      *big.Int `json:"byzantiumBlock,omitempty"`      // Byzantium switch block (nil = no fork, 0 = already on byzantium)
+	// Byzantium
+	// https://github.com/ethereum/go-ethereum/releases/tag/v1.7.0
+	ByzantiumBlock *big.Int `json:"byzantiumBlock,omitempty"` // Byzantium switch block (nil = no fork, 0 = already on byzantium)
+	//
+	// Difficulty adjustment to target mean block time including uncles
+	// https://github.com/ethereum/EIPs/issues/100
+	EIP100Block *big.Int `json:"eip100Block,omitempty"`
+	// Opcode REVERT
+	// https://eips.ethereum.org/EIPS/eip-140
+	EIP140Block *big.Int `json:"eip140Block,omitempty"`
+	// Precompiled contract for bigint_modexp
+	// https://github.com/ethereum/EIPs/issues/198
+	EIP198Block *big.Int `json:"eip198Block,omitempty"`
+	// Opcodes RETURNDATACOPY, RETURNDATASIZE
+	// https://github.com/ethereum/EIPs/issues/211
+	EIP211Block *big.Int `json:"eip211Block,omitempty"`
+	// Precompiled contract for pairing check
+	// https://github.com/ethereum/EIPs/issues/212
+	EIP212Block *big.Int `json:"eip212Block,omitempty"`
+	// Precompiled contracts for addition and scalar multiplication on the elliptic curve alt_bn128
+	// https://github.com/ethereum/EIPs/issues/213
+	EIP213Block *big.Int `json:"eip213Block,omitempty"`
+	// Opcode STATICCALL
+	// https://github.com/ethereum/EIPs/issues/214
+	EIP214Block *big.Int `json:"eip214Block,omitempty"`
+	// Metropolis diff bomb delay and reducing block reward
+	// https://github.com/ethereum/EIPs/issues/649
+	// note that this is closely related to EIP100.
+	// In fact, EIP100 is bundled in
+	EIP649Block *big.Int `json:"eip649Block,omitempty"`
+	// Transaction receipt status
+	// https://github.com/ethereum/EIPs/issues/658
+	EIP658Block *big.Int `json:"eip658Block,omitempty"`
+	// NOT CONFIGURABLE: prevent overwriting contracts
+	// https://github.com/ethereum/EIPs/issues/684
+	// EIP684Block *big.Int `json:"eip684Block,omitempty"`
+
+	// https://github.com/ethereum/pm/wiki/Constantinople-Progress-Tracker
 	ConstantinopleBlock *big.Int `json:"constantinopleBlock,omitempty"` // Constantinople switch block (nil = no fork, 0 = already activated)
-	EWASMBlock          *big.Int `json:"ewasmBlock,omitempty"`          // EWASM switch block (nil = no fork, 0 = already activated)
+	//
+	// Opcodes SHR, SHL, SAR
+	// https://eips.ethereum.org/EIPS/eip-145
+	EIP145Block *big.Int `json:"eip145Block,omitempty"`
+	// Opcode CREATE2
+	// https://eips.ethereum.org/EIPS/eip-1014
+	EIP1014Block *big.Int `json:"eip1014Block,omitempty"`
+	// Opcode EXTCODEHASH
+	// https://eips.ethereum.org/EIPS/eip-1052
+	EIP1052Block *big.Int `json:"eip1052Block,omitempty"`
+	// Constantinople difficulty bomb delay and block reward adjustment
+	// https://eips.ethereum.org/EIPS/eip-1234
+	EIP1234Block *big.Int `json:"eip1234Block,omitempty"`
+	// Net gas metering
+	// https://eips.ethereum.org/EIPS/eip-1283
+	EIP1283Block *big.Int `json:"eip1283Block,omitempty"`
+
+	EWASMBlock *big.Int `json:"ewasmBlock,omitempty"` // EWASM switch block (nil = no fork, 0 = already activated)
 
 	// Various consensus engines
 	Ethash *EthashConfig `json:"ethash,omitempty"`
@@ -214,6 +382,11 @@ func (c *ChainConfig) IsHomestead(num *big.Int) bool {
 	return isForked(c.HomesteadBlock, num)
 }
 
+// IsEIP7 returns whether num is equal to or greater than the Homestead or EIP7 block.
+func (c *ChainConfig) IsEIP7(num *big.Int) bool {
+	return c.IsHomestead(num) || isForked(c.EIP7Block, num)
+}
+
 // IsDAOFork returns whether num is either equal to the DAO fork block or greater.
 func (c *ChainConfig) IsDAOFork(num *big.Int) bool {
 	return isForked(c.DAOForkBlock, num)
@@ -234,14 +407,128 @@ func (c *ChainConfig) IsEIP158(num *big.Int) bool {
 	return isForked(c.EIP158Block, num)
 }
 
-// IsByzantium returns whether num is either equal to the Byzantium fork block or greater.
-func (c *ChainConfig) IsByzantium(num *big.Int) bool {
-	return isForked(c.ByzantiumBlock, num)
+//ByzantiumEIPBlocks returns the canonical EIP blocks configured for the Byzantium Fork.
+func (c *ChainConfig) ByzantiumEIPBlocks() []*big.Int {
+	return []*big.Int{
+		c.EIP100Block,
+		c.EIP140Block,
+		c.EIP198Block,
+		c.EIP211Block,
+		c.EIP212Block,
+		c.EIP213Block,
+		c.EIP214Block,
+		c.EIP649Block,
+		c.EIP658Block,
+	}
 }
 
-// IsConstantinople returns whether num is either equal to the Constantinople fork block or greater.
+// IsByzantium returns whether num is either equal to the Byzantium fork block or greater,
+// or whether the configured params satisfy all requirements fulfilling the Byzantium fork.
+func (c *ChainConfig) IsByzantium(num *big.Int) bool {
+	return isForked(c.ByzantiumBlock, num) || func(n *big.Int) bool {
+		blocks := c.ByzantiumEIPBlocks()
+		for i := range blocks {
+			if !isForked(blocks[i], n) {
+				return false
+			}
+		}
+		return true
+	}(num)
+}
+
+// IsEIP100 returns whether num is equal to or greater than the Byzantium or EIP100 block.
+func (c *ChainConfig) IsEIP100(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP100Block, num)
+}
+
+// IsEIP140 returns whether num is equal to or greater than the Byzantium or EIP140 block.
+func (c *ChainConfig) IsEIP140(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP140Block, num)
+}
+
+// IsEIP198 returns whether num is equal to or greater than the Byzantium or EIP198 block.
+func (c *ChainConfig) IsEIP198(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP198Block, num)
+}
+
+// IsEIP211 returns whether num is equal to or greater than the Byzantium or EIP211 block.
+func (c *ChainConfig) IsEIP211(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP211Block, num)
+}
+
+// IsEIP212 returns whether num is equal to or greater than the Byzantium or EIP212 block.
+func (c *ChainConfig) IsEIP212(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP212Block, num)
+}
+
+// IsEIP213 returns whether num is equal to or greater than the Byzantium or EIP213 block.
+func (c *ChainConfig) IsEIP213(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP213Block, num)
+}
+
+// IsEIP214 returns whether num is equal to or greater than the Byzantium or EIP214 block.
+func (c *ChainConfig) IsEIP214(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP214Block, num)
+}
+
+// IsEIP649 returns whether num is equal to or greater than the Byzantium or EIP649 block.
+func (c *ChainConfig) IsEIP649(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP649Block, num)
+}
+
+// IsEIP658 returns whether num is equal to or greater than the Byzantium or EIP658 block.
+func (c *ChainConfig) IsEIP658(num *big.Int) bool {
+	return c.IsByzantium(num) || isForked(c.EIP658Block, num)
+}
+
+// ConstantinopleEIPBlocks returns the canonical blocks configured for the Constantinople Fork.
+func (c *ChainConfig) ConstantinopleEIPBlocks() []*big.Int {
+	return []*big.Int{
+		c.EIP145Block,
+		c.EIP1014Block,
+		c.EIP1052Block,
+		c.EIP1234Block,
+		c.EIP1283Block,
+	}
+}
+
+// IsConstantinople returns whether num is either equal to the Constantinople fork block or greater,
+// or whether configured params satisfy all requirements fulfilling the Constantinople fork.
 func (c *ChainConfig) IsConstantinople(num *big.Int) bool {
-	return isForked(c.ConstantinopleBlock, num)
+	return isForked(c.ConstantinopleBlock, num) || func(n *big.Int) bool {
+		blocks := c.ConstantinopleEIPBlocks()
+		for i := range blocks {
+			if !isForked(blocks[i], n) {
+				return false
+			}
+		}
+		return true
+	}(num)
+}
+
+// IsEIP145 returns whether num is equal to or greater than the Constantinople or EIP145 block.
+func (c *ChainConfig) IsEIP145(num *big.Int) bool {
+	return c.IsConstantinople(num) || isForked(c.EIP145Block, num)
+}
+
+// IsEIP1014 returns whether num is equal to or greater than the Constantinople or EIP1014 block.
+func (c *ChainConfig) IsEIP1014(num *big.Int) bool {
+	return c.IsConstantinople(num) || isForked(c.EIP1014Block, num)
+}
+
+// IsEIP1052 returns whether num is equal to or greater than the Constantinople or EIP1052 block.
+func (c *ChainConfig) IsEIP1052(num *big.Int) bool {
+	return c.IsConstantinople(num) || isForked(c.EIP1052Block, num)
+}
+
+// IsEIP1283 returns whether num is equal to or greater than the Constantinople or EIP1283 block.
+func (c *ChainConfig) IsEIP1283(num *big.Int) bool {
+	return c.IsConstantinople(num) || isForked(c.EIP1283Block, num)
+}
+
+// IsEIP1234 returns whether num is equal to or greater than the Constantinople or EIP1234 block.
+func (c *ChainConfig) IsEIP1234(num *big.Int) bool {
+	return c.IsConstantinople(num) || isForked(c.EIP1234Block, num)
 }
 
 // IsEWASM returns whether num represents a block number after the EWASM fork
@@ -257,8 +544,8 @@ func (c *ChainConfig) GasTable(num *big.Int) GasTable {
 		return GasTableHomestead
 	}
 	switch {
-	case c.IsConstantinople(num):
-		return GasTableConstantinople
+	case c.IsEIP1052(num):
+		return GasTableEIP1052
 	case c.IsEIP158(num):
 		return GasTableEIP158
 	case c.IsEIP150(num):
@@ -287,36 +574,132 @@ func (c *ChainConfig) CheckCompatible(newcfg *ChainConfig, height uint64) *Confi
 }
 
 func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *ConfigCompatError {
-	if isForkIncompatible(c.HomesteadBlock, newcfg.HomesteadBlock, head) {
-		return newCompatError("Homestead fork block", c.HomesteadBlock, newcfg.HomesteadBlock)
+	for _, ch := range []struct {
+		name   string
+		c1, c2 *big.Int
+	}{
+		{
+			"Homestead",
+			c.HomesteadBlock, newcfg.HomesteadBlock,
+		},
+		{
+			"EIP7",
+			c.EIP7Block, newcfg.EIP7Block,
+		},
+		{
+			"DAO",
+			c.DAOForkBlock, newcfg.DAOForkBlock,
+		},
+		{
+			"EIP150",
+			c.EIP150Block, newcfg.EIP150Block,
+		},
+		{
+			"EIP155",
+			c.EIP155Block, newcfg.EIP155Block,
+		},
+		{
+			"EIP158",
+			c.EIP158Block, newcfg.EIP158Block,
+		},
+		{
+			"Byzantium",
+			c.ByzantiumBlock, newcfg.ByzantiumBlock,
+		},
+		{
+			"EIP100",
+			c.EIP100Block, newcfg.EIP100Block,
+		},
+		{
+			"EIP140",
+			c.EIP140Block, newcfg.EIP140Block,
+		},
+		{
+			"EIP198",
+			c.EIP198Block, newcfg.EIP198Block,
+		},
+		{
+			"EIP211",
+			c.EIP211Block, newcfg.EIP211Block,
+		},
+		{
+			"EIP212",
+			c.EIP212Block, newcfg.EIP212Block,
+		},
+		{
+			"EIP213",
+			c.EIP213Block, newcfg.EIP213Block,
+		},
+		{
+			"EIP214",
+			c.EIP214Block, newcfg.EIP214Block,
+		},
+		{
+			"EIP649",
+			c.EIP649Block, newcfg.EIP649Block,
+		},
+		{
+			"EIP649",
+			c.EIP649Block, newcfg.EIP649Block,
+		},
+		{
+			"EIP658",
+			c.EIP658Block, newcfg.EIP658Block,
+		},
+		{
+			"Constantinople",
+			c.ConstantinopleBlock, newcfg.ConstantinopleBlock,
+		},
+		{
+			"EIP145",
+			c.EIP145Block, newcfg.EIP145Block,
+		},
+		{
+			"EIP1014",
+			c.EIP1014Block, newcfg.EIP1014Block,
+		},
+		{
+			"EIP1052",
+			c.EIP1052Block, newcfg.EIP1052Block,
+		},
+		{
+			"EIP1283",
+			c.EIP1283Block, newcfg.EIP1283Block,
+		},
+		{
+			"EIP1234",
+			c.EIP1234Block, newcfg.EIP1234Block,
+		},
+		{
+			"EWASM",
+			c.EWASMBlock, newcfg.EWASMBlock,
+		},
+	} {
+		if isForkIncompatible(ch.c1, ch.c2, head) {
+			return newCompatError(ch.name+" fork block", ch.c1, ch.c2)
+		}
+		return nil
 	}
-	if isForkIncompatible(c.DAOForkBlock, newcfg.DAOForkBlock, head) {
-		return newCompatError("DAO fork block", c.DAOForkBlock, newcfg.DAOForkBlock)
-	}
+
 	if c.IsDAOFork(head) && c.DAOForkSupport != newcfg.DAOForkSupport {
 		return newCompatError("DAO fork support flag", c.DAOForkBlock, newcfg.DAOForkBlock)
-	}
-	if isForkIncompatible(c.EIP150Block, newcfg.EIP150Block, head) {
-		return newCompatError("EIP150 fork block", c.EIP150Block, newcfg.EIP150Block)
-	}
-	if isForkIncompatible(c.EIP155Block, newcfg.EIP155Block, head) {
-		return newCompatError("EIP155 fork block", c.EIP155Block, newcfg.EIP155Block)
-	}
-	if isForkIncompatible(c.EIP158Block, newcfg.EIP158Block, head) {
-		return newCompatError("EIP158 fork block", c.EIP158Block, newcfg.EIP158Block)
 	}
 	if c.IsEIP158(head) && !configNumEqual(c.ChainID, newcfg.ChainID) {
 		return newCompatError("EIP158 chain ID", c.EIP158Block, newcfg.EIP158Block)
 	}
-	if isForkIncompatible(c.ByzantiumBlock, newcfg.ByzantiumBlock, head) {
-		return newCompatError("Byzantium fork block", c.ByzantiumBlock, newcfg.ByzantiumBlock)
+	// Either Byzantium block must be set OR EIP100 and EIP649 must be equivalent
+	if newcfg.ByzantiumBlock == nil {
+		if !configNumEqual(newcfg.EIP100Block, newcfg.EIP649Block) {
+			return newCompatError("EIP100/EIP649", newcfg.EIP100Block, newcfg.EIP649Block)
+		}
+		if isForkIncompatible(c.EIP100Block, newcfg.EIP649Block, head) {
+			return newCompatError("EIP100/649 fork block", c.EIP100Block, newcfg.EIP649Block)
+		}
+		if isForkIncompatible(c.EIP649Block, newcfg.EIP100Block, head) {
+			return newCompatError("EIP649/100 fork block", c.EIP649Block, newcfg.EIP100Block)
+		}
 	}
-	if isForkIncompatible(c.ConstantinopleBlock, newcfg.ConstantinopleBlock, head) {
-		return newCompatError("Constantinople fork block", c.ConstantinopleBlock, newcfg.ConstantinopleBlock)
-	}
-	if isForkIncompatible(c.EWASMBlock, newcfg.EWASMBlock, head) {
-		return newCompatError("ewasm fork block", c.EWASMBlock, newcfg.EWASMBlock)
-	}
+
 	return nil
 }
 
@@ -381,9 +764,13 @@ func (err *ConfigCompatError) Error() string {
 // Rules is a one time interface meaning that it shouldn't be used in between transition
 // phases.
 type Rules struct {
-	ChainID                                   *big.Int
-	IsHomestead, IsEIP150, IsEIP155, IsEIP158 bool
-	IsByzantium, IsConstantinople             bool
+	ChainID                                                                                               *big.Int
+	IsHomestead, IsEIP7                                                                                   bool
+	IsEIP150                                                                                              bool
+	IsEIP155                                                                                              bool
+	IsEIP158                                                                                              bool
+	IsByzantium, IsEIP100, IsEIP140, IsEIP198, IsEIP211, IsEIP212, IsEIP213, IsEIP214, IsEIP649, IsEIP658 bool
+	IsConstantinople, IsEIP145, IsEIP1014, IsEIP1052, IsEIP1283, IsEIP1234                                bool
 }
 
 // Rules ensures c's ChainID is not nil.
@@ -393,12 +780,31 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		chainID = new(big.Int)
 	}
 	return Rules{
-		ChainID:          new(big.Int).Set(chainID),
-		IsHomestead:      c.IsHomestead(num),
-		IsEIP150:         c.IsEIP150(num),
-		IsEIP155:         c.IsEIP155(num),
-		IsEIP158:         c.IsEIP158(num),
-		IsByzantium:      c.IsByzantium(num),
+		ChainID: new(big.Int).Set(chainID),
+
+		IsHomestead: c.IsHomestead(num),
+		IsEIP7:      c.IsEIP7(num),
+
+		IsEIP150: c.IsEIP150(num),
+		IsEIP155: c.IsEIP155(num),
+		IsEIP158: c.IsEIP158(num),
+
+		IsByzantium: c.IsByzantium(num),
+		IsEIP100:    c.IsEIP100(num),
+		IsEIP140:    c.IsEIP140(num),
+		IsEIP198:    c.IsEIP198(num),
+		IsEIP211:    c.IsEIP211(num),
+		IsEIP212:    c.IsEIP212(num),
+		IsEIP213:    c.IsEIP213(num),
+		IsEIP214:    c.IsEIP214(num),
+		IsEIP649:    c.IsEIP649(num),
+		IsEIP658:    c.IsEIP658(num),
+
 		IsConstantinople: c.IsConstantinople(num),
+		IsEIP145:         c.IsEIP145(num),
+		IsEIP1014:        c.IsEIP1014(num),
+		IsEIP1052:        c.IsEIP1052(num),
+		IsEIP1283:        c.IsEIP1283(num),
+		IsEIP1234:        c.IsEIP1234(num),
 	}
 }

@@ -417,7 +417,7 @@ func (spec *parityChainSpec) setPrecompile(address byte, data *parityChainSpecBu
 }
 
 func (spec *parityChainSpec) setByzantium(num *big.Int) {
-	spec.Engine.Ethash.Params.BlockReward[hexutil.EncodeBig(num)] = hexutil.EncodeBig(ethash.ByzantiumBlockReward)
+	spec.Engine.Ethash.Params.BlockReward[hexutil.EncodeBig(num)] = hexutil.EncodeBig(ethash.EIP649BlockReward)
 	spec.Engine.Ethash.Params.DifficultyBombDelays[hexutil.EncodeBig(num)] = hexutil.EncodeUint64(3000000)
 	n := hexutil.Uint64(num.Uint64())
 	spec.Engine.Ethash.Params.EIP100bTransition = n

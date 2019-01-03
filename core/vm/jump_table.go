@@ -53,8 +53,7 @@ type operation struct {
 
 var baseInstructionSet = newInstructionSet()
 
-// NewFrontierInstructionSet returns the frontier instructions
-// that can be executed during and after the frontier phase.
+// newInstructionSet returns all available instructions.
 func newInstructionSet() [256]operation {
 	return [256]operation{
 		STOP: {

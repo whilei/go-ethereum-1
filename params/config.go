@@ -735,7 +735,7 @@ func (c *ChainConfig) Rules(num *big.Int) Rules {
 		IsEIP145:         c.IsEIP145(num),
 		IsEIP1014:        c.IsEIP1014(num),
 		IsEIP1052:        c.IsEIP1052(num),
-		IsEIP1283:        c.IsEIP1283(num),
 		IsEIP1234:        c.IsEIP1234(num),
+		IsEIP1283:        c.IsEIP1283(num),
 	}
 }

@@ -183,7 +183,7 @@ func TestCheckCompatible(t *testing.T) {
 			head:   25,
 			wantErr: &ConfigCompatError{
 				What:         "EIP100/EIP649 not equal",
-				StoredConfig: big.NewInt(26), // note that this is weird, b/c ConfigCompatError not set up for these kinds of strange cases
+				StoredConfig: big.NewInt(26), // this yields a weird-looking error (correctly, though), b/c ConfigCompatError not set up for these kinds of strange cases
 				NewConfig:    nil,
 				RewindTo:     25,
 			},

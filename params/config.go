@@ -690,7 +690,7 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 	// Either Byzantium block must be set OR EIP100 and EIP649 must be equivalent
 	if newcfg.ByzantiumBlock == nil {
 		if !configNumEqual(newcfg.EIP100Block, newcfg.EIP649Block) {
-			return newCompatError("EIP100/EIP649", newcfg.EIP100Block, newcfg.EIP649Block)
+			return newCompatError("EIP100/EIP649 not equal", newcfg.EIP100Block, newcfg.EIP649Block)
 		}
 		if isForkIncompatible(c.EIP100Block, newcfg.EIP649Block, head) {
 			return newCompatError("EIP100/649 fork block", c.EIP100Block, newcfg.EIP649Block)

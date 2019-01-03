@@ -154,7 +154,7 @@ func TestCheckCompatible(t *testing.T) {
 			new:    &ChainConfig{EIP100Block: big.NewInt(30), EIP649Block: big.NewInt(31)},
 			head:   25,
 			wantErr: &ConfigCompatError{
-				What:         "EIP100/EIP649",
+				What:         "EIP100/EIP649 not equal",
 				StoredConfig: big.NewInt(30),
 				NewConfig:    big.NewInt(31),
 				RewindTo:     29,
@@ -172,6 +172,29 @@ func TestCheckCompatible(t *testing.T) {
 			},
 		},
 		{
+			stored:  &ChainConfig{ByzantiumBlock: big.NewInt(30)},
+			new:     &ChainConfig{EIP211Block: big.NewInt(26)},
+			head:    25,
+			wantErr: nil,
+		},
+		{
+			stored: &ChainConfig{ByzantiumBlock: big.NewInt(30)},
+			new:    &ChainConfig{EIP100Block: big.NewInt(26)}, // err: EIP649 must also be set
+			head:   25,
+			wantErr: &ConfigCompatError{
+				What:         "EIP100/EIP649 not equal",
+				StoredConfig: big.NewInt(26), // note that this is weird, b/c ConfigCompatError not set up for these kinds of strange cases
+				NewConfig:    nil,
+				RewindTo:     25,
+			},
+		},
+		{
+			stored:  &ChainConfig{ByzantiumBlock: big.NewInt(30)},
+			new:     &ChainConfig{EIP100Block: big.NewInt(26), EIP649Block: big.NewInt(26)},
+			head:    25,
+			wantErr: nil,
+		},
+		{
 			stored: MainnetChainConfig,
 			new: func() *ChainConfig {
 				c := &ChainConfig{}
@@ -185,6 +208,22 @@ func TestCheckCompatible(t *testing.T) {
 				StoredConfig: MainnetChainConfig.DAOForkBlock,
 				NewConfig:    MainnetChainConfig.DAOForkBlock,
 				RewindTo:     new(big.Int).Sub(MainnetChainConfig.DAOForkBlock, common.Big1).Uint64(),
+			},
+		},
+		{
+			stored: MainnetChainConfig,
+			new: func() *ChainConfig {
+				c := &ChainConfig{}
+				*c = *MainnetChainConfig
+				c.ChainID = big.NewInt(42)
+				return c
+			}(),
+			head: MainnetChainConfig.EIP158Block.Uint64(),
+			wantErr: &ConfigCompatError{
+				What:         "EIP158 chain ID",
+				StoredConfig: MainnetChainConfig.EIP158Block,
+				NewConfig:    MainnetChainConfig.EIP158Block,
+				RewindTo:     new(big.Int).Sub(MainnetChainConfig.EIP158Block, common.Big1).Uint64(),
 			},
 		},
 	}

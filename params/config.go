@@ -578,106 +578,37 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 		name   string
 		c1, c2 *big.Int
 	}{
-		{
-			"Homestead",
-			c.HomesteadBlock, newcfg.HomesteadBlock,
-		},
-		{
-			"EIP7",
-			c.EIP7Block, newcfg.EIP7Block,
-		},
-		{
-			"DAO",
-			c.DAOForkBlock, newcfg.DAOForkBlock,
-		},
-		{
-			"EIP150",
-			c.EIP150Block, newcfg.EIP150Block,
-		},
-		{
-			"EIP155",
-			c.EIP155Block, newcfg.EIP155Block,
-		},
-		{
-			"EIP158",
-			c.EIP158Block, newcfg.EIP158Block,
-		},
-		{
-			"Byzantium",
-			c.ByzantiumBlock, newcfg.ByzantiumBlock,
-		},
-		{
-			"EIP100",
-			c.EIP100Block, newcfg.EIP100Block,
-		},
-		{
-			"EIP140",
-			c.EIP140Block, newcfg.EIP140Block,
-		},
-		{
-			"EIP198",
-			c.EIP198Block, newcfg.EIP198Block,
-		},
-		{
-			"EIP211",
-			c.EIP211Block, newcfg.EIP211Block,
-		},
-		{
-			"EIP212",
-			c.EIP212Block, newcfg.EIP212Block,
-		},
-		{
-			"EIP213",
-			c.EIP213Block, newcfg.EIP213Block,
-		},
-		{
-			"EIP214",
-			c.EIP214Block, newcfg.EIP214Block,
-		},
-		{
-			"EIP649",
-			c.EIP649Block, newcfg.EIP649Block,
-		},
-		{
-			"EIP658",
-			c.EIP658Block, newcfg.EIP658Block,
-		},
-		{
-			"Constantinople",
-			c.ConstantinopleBlock, newcfg.ConstantinopleBlock,
-		},
-		{
-			"EIP145",
-			c.EIP145Block, newcfg.EIP145Block,
-		},
-		{
-			"EIP1014",
-			c.EIP1014Block, newcfg.EIP1014Block,
-		},
-		{
-			"EIP1052",
-			c.EIP1052Block, newcfg.EIP1052Block,
-		},
-		{
-			"EIP1234",
-			c.EIP1234Block, newcfg.EIP1234Block,
-		},
-		{
-			"EIP1283",
-			c.EIP1283Block, newcfg.EIP1283Block,
-		},
-		{
-			"EWASM",
-			c.EWASMBlock, newcfg.EWASMBlock,
-		},
+		{"Homestead", c.HomesteadBlock, newcfg.HomesteadBlock},
+		{"EIP7", c.EIP7Block, newcfg.EIP7Block},
+		{"DAO", c.DAOForkBlock, newcfg.DAOForkBlock},
+		{"EIP150", c.EIP150Block, newcfg.EIP150Block},
+		{"EIP155", c.EIP155Block, newcfg.EIP155Block},
+		{"EIP158", c.EIP158Block, newcfg.EIP158Block},
+		{"Byzantium", c.ByzantiumBlock, newcfg.ByzantiumBlock},
+		{"EIP100", c.EIP100Block, newcfg.EIP100Block},
+		{"EIP140", c.EIP140Block, newcfg.EIP140Block},
+		{"EIP198", c.EIP198Block, newcfg.EIP198Block},
+		{"EIP211", c.EIP211Block, newcfg.EIP211Block},
+		{"EIP212", c.EIP212Block, newcfg.EIP212Block},
+		{"EIP213", c.EIP213Block, newcfg.EIP213Block},
+		{"EIP214", c.EIP214Block, newcfg.EIP214Block},
+		{"EIP649", c.EIP649Block, newcfg.EIP649Block},
+		{"EIP658", c.EIP658Block, newcfg.EIP658Block},
+		{"Constantinople", c.ConstantinopleBlock, newcfg.ConstantinopleBlock},
+		{"EIP145", c.EIP145Block, newcfg.EIP145Block},
+		{"EIP1014", c.EIP1014Block, newcfg.EIP1014Block},
+		{"EIP1052", c.EIP1052Block, newcfg.EIP1052Block},
+		{"EIP1234", c.EIP1234Block, newcfg.EIP1234Block},
+		{"EIP1283", c.EIP1283Block, newcfg.EIP1283Block},
+		{"EWASM", c.EWASMBlock, newcfg.EWASMBlock},
 	} {
-		if err := func(c1, c2, head *big.Int) error {
+		if err := func(c1, c2, head *big.Int) *ConfigCompatError {
 			if isForkIncompatible(ch.c1, ch.c2, head) {
 				return newCompatError(ch.name+" fork block", ch.c1, ch.c2)
 			}
 			return nil
 		}(ch.c1, ch.c2, head); err != nil {
-			return (err).(*ConfigCompatError)
+			return err
 		}
 	}
 

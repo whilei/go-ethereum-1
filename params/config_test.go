@@ -199,7 +199,7 @@ func TestCheckCompatible(t *testing.T) {
 			new: func() *ChainConfig {
 				c := &ChainConfig{}
 				*c = *MainnetChainConfig
-				c.DAOForkSupport = false
+				c.DAOForkSupport = !MainnetChainConfig.DAOForkSupport
 				return c
 			}(),
 			head: MainnetChainConfig.DAOForkBlock.Uint64(),
@@ -215,7 +215,7 @@ func TestCheckCompatible(t *testing.T) {
 			new: func() *ChainConfig {
 				c := &ChainConfig{}
 				*c = *MainnetChainConfig
-				c.ChainID = big.NewInt(42)
+				c.ChainID = new(big.Int).Sub(MainnetChainConfig.EIP158Block, common.Big1)
 				return c
 			}(),
 			head: MainnetChainConfig.EIP158Block.Uint64(),

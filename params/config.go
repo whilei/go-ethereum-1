@@ -639,10 +639,6 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 			c.EIP649Block, newcfg.EIP649Block,
 		},
 		{
-			"EIP649",
-			c.EIP649Block, newcfg.EIP649Block,
-		},
-		{
 			"EIP658",
 			c.EIP658Block, newcfg.EIP658Block,
 		},
@@ -663,12 +659,12 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 			c.EIP1052Block, newcfg.EIP1052Block,
 		},
 		{
-			"EIP1283",
-			c.EIP1283Block, newcfg.EIP1283Block,
-		},
-		{
 			"EIP1234",
 			c.EIP1234Block, newcfg.EIP1234Block,
+		},
+		{
+			"EIP1283",
+			c.EIP1283Block, newcfg.EIP1283Block,
 		},
 		{
 			"EWASM",

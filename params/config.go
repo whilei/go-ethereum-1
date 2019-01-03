@@ -671,10 +671,14 @@ func (c *ChainConfig) checkCompatible(newcfg *ChainConfig, head *big.Int) *Confi
 			c.EWASMBlock, newcfg.EWASMBlock,
 		},
 	} {
-		if isForkIncompatible(ch.c1, ch.c2, head) {
-			return newCompatError(ch.name+" fork block", ch.c1, ch.c2)
+		if err := func(c1, c2, head *big.Int) error {
+			if isForkIncompatible(ch.c1, ch.c2, head) {
+				return newCompatError(ch.name+" fork block", ch.c1, ch.c2)
+			}
+			return nil
+		}(ch.c1, ch.c2, head); err != nil {
+			return (err).(*ConfigCompatError)
 		}
-		return nil
 	}
 
 	if c.IsDAOFork(head) && c.DAOForkSupport != newcfg.DAOForkSupport {

@@ -141,12 +141,50 @@ func TestCheckCompatible(t *testing.T) {
 		{
 			stored: &ChainConfig{HomesteadBlock: big.NewInt(30), EIP150Block: big.NewInt(10)},
 			new:    &ChainConfig{HomesteadBlock: big.NewInt(25), EIP150Block: big.NewInt(20)},
-			head:   24,
+			head:   25,
 			wantErr: &ConfigCompatError{
 				What:         "EIP150 fork block",
 				StoredConfig: big.NewInt(10),
 				NewConfig:    big.NewInt(20),
 				RewindTo:     9,
+			},
+		},
+		{
+			stored: &ChainConfig{EIP100Block: big.NewInt(30), EIP649Block: big.NewInt(31)},
+			new:    &ChainConfig{EIP100Block: big.NewInt(30), EIP649Block: big.NewInt(31)},
+			head:   25,
+			wantErr: &ConfigCompatError{
+				What:         "EIP100/EIP649",
+				StoredConfig: big.NewInt(30),
+				NewConfig:    big.NewInt(31),
+				RewindTo:     29,
+			},
+		},
+		{
+			stored: &ChainConfig{EIP100Block: big.NewInt(30), EIP649Block: big.NewInt(30)},
+			new:    &ChainConfig{EIP100Block: big.NewInt(24), EIP649Block: big.NewInt(24)},
+			head:   25,
+			wantErr: &ConfigCompatError{
+				What:         "EIP100 fork block",
+				StoredConfig: big.NewInt(30),
+				NewConfig:    big.NewInt(24),
+				RewindTo:     23,
+			},
+		},
+		{
+			stored: MainnetChainConfig,
+			new: func() *ChainConfig {
+				c := &ChainConfig{}
+				*c = *MainnetChainConfig
+				c.DAOForkSupport = false
+				return c
+			}(),
+			head: MainnetChainConfig.DAOForkBlock.Uint64(),
+			wantErr: &ConfigCompatError{
+				What:         "DAO fork support flag",
+				StoredConfig: MainnetChainConfig.DAOForkBlock,
+				NewConfig:    MainnetChainConfig.DAOForkBlock,
+				RewindTo:     new(big.Int).Sub(MainnetChainConfig.DAOForkBlock, common.Big1).Uint64(),
 			},
 		},
 	}

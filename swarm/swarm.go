@@ -56,6 +56,7 @@ import (
 )
 
 var (
+	startTime          time.Time
 	updateGaugesPeriod = 5 * time.Second
 	startCounter       = metrics.NewRegisteredCounter("stack,start", nil)
 	stopCounter        = metrics.NewRegisteredCounter("stack,stop", nil)
@@ -79,16 +80,16 @@ type Swarm struct {
 	swap              *swap.Swap
 	stateStore        *state.DBStore
 	accountingMetrics *protocols.AccountingMetrics
-	startTime         time.Time
 
 	tracerClose io.Closer
 }
 
-// NewSwarm creates a new swarm service instance
+// creates a new swarm service instance
 // implements node.Service
 // If mockStore is not nil, it will be used as the storage for chunk data.
 // MockStore should be used only for testing.
 func NewSwarm(config *api.Config, mockStore *mock.NodeStore) (self *Swarm, err error) {
+
 	if bytes.Equal(common.FromHex(config.PublicKey), storage.ZeroAddr) {
 		return nil, fmt.Errorf("empty public key")
 	}
@@ -115,11 +116,10 @@ func NewSwarm(config *api.Config, mockStore *mock.NodeStore) (self *Swarm, err e
 	config.HiveParams.Discovery = true
 
 	bzzconfig := &network.BzzConfig{
-		NetworkID:    config.NetworkID,
-		OverlayAddr:  common.FromHex(config.BzzKey),
-		HiveParams:   config.HiveParams,
-		LightNode:    config.LightNodeEnabled,
-		BootnodeMode: config.BootnodeMode,
+		NetworkID:   config.NetworkID,
+		OverlayAddr: common.FromHex(config.BzzKey),
+		HiveParams:  config.HiveParams,
+		LightNode:   config.LightNodeEnabled,
 	}
 
 	self.stateStore, err = state.NewDBStore(filepath.Join(config.Path, "state-store.db"))
@@ -344,7 +344,7 @@ Start is called when the stack is started
 */
 // implements the node.Service interface
 func (self *Swarm) Start(srv *p2p.Server) error {
-	self.startTime = time.Now()
+	startTime = time.Now()
 
 	self.tracerClose = tracing.Closer
 
@@ -414,7 +414,7 @@ func (self *Swarm) periodicallyUpdateGauges() {
 }
 
 func (self *Swarm) updateGauges() {
-	uptimeGauge.Update(time.Since(self.startTime).Nanoseconds())
+	uptimeGauge.Update(time.Since(startTime).Nanoseconds())
 	requestsCacheGauge.Update(int64(self.netStore.RequestsCacheLen()))
 }
 
@@ -455,16 +455,12 @@ func (self *Swarm) Stop() error {
 	return err
 }
 
-// Protocols implements the node.Service interface
-func (s *Swarm) Protocols() (protos []p2p.Protocol) {
-	if s.config.BootnodeMode {
-		protos = append(protos, s.bzz.Protocols()...)
-	} else {
-		protos = append(protos, s.bzz.Protocols()...)
+// implements the node.Service interface
+func (self *Swarm) Protocols() (protos []p2p.Protocol) {
+	protos = append(protos, self.bzz.Protocols()...)
 
-		if s.ps != nil {
-			protos = append(protos, s.ps.Protocols()...)
-		}
+	if self.ps != nil {
+		protos = append(protos, self.ps.Protocols()...)
 	}
 	return
 }

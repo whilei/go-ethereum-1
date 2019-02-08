@@ -27,6 +27,7 @@ import (
 	"os"
 	"strings"
 	"sync/atomic"
+	"testing"
 	"time"
 
 	"github.com/ethereum/go-ethereum/log"
@@ -66,7 +67,7 @@ func init() {
 	log.Root().SetHandler(log.LvlFilterHandler(log.Lvl(*loglevel), log.StreamHandler(colorable.NewColorableStderr(), log.TerminalFormat(true))))
 }
 
-func newStreamerTester(registryOptions *RegistryOptions) (*p2ptest.ProtocolTester, *Registry, *storage.LocalStore, func(), error) {
+func newStreamerTester(t *testing.T, registryOptions *RegistryOptions) (*p2ptest.ProtocolTester, *Registry, *storage.LocalStore, func(), error) {
 	// setup
 	addr := network.RandomAddr() // tested peers peer address
 	to := network.NewKademlia(addr.OAddr, network.NewKadParams())
@@ -101,7 +102,7 @@ func newStreamerTester(registryOptions *RegistryOptions) (*p2ptest.ProtocolTeste
 		streamer.Close()
 		removeDataDir()
 	}
-	protocolTester := p2ptest.NewProtocolTester(addr.ID(), 1, streamer.runProtocol)
+	protocolTester := p2ptest.NewProtocolTester(t, addr.ID(), 1, streamer.runProtocol)
 
 	err = waitForPeers(streamer, 1*time.Second, 1)
 	if err != nil {

@@ -130,7 +130,7 @@ func main() {
 		swarmmetrics.MetricsInfluxDBDatabaseFlag,
 		swarmmetrics.MetricsInfluxDBUsernameFlag,
 		swarmmetrics.MetricsInfluxDBPasswordFlag,
-		swarmmetrics.MetricsInfluxDBTagsFlag,
+		swarmmetrics.MetricsInfluxDBHostTagFlag,
 	}...)
 
 	app.Flags = append(app.Flags, tracing.Flags...)
@@ -147,12 +147,6 @@ func main() {
 			Aliases: []string{"f"},
 			Usage:   "feed update generate, upload and sync",
 			Action:  cliFeedUploadAndSync,
-		},
-		{
-			Name:    "upload_speed",
-			Aliases: []string{"u"},
-			Usage:   "measure upload speed",
-			Action:  cliUploadSpeed,
 		},
 	}
 
@@ -183,14 +177,13 @@ func emitMetrics(ctx *cli.Context) error {
 			database = ctx.GlobalString(swarmmetrics.MetricsInfluxDBDatabaseFlag.Name)
 			username = ctx.GlobalString(swarmmetrics.MetricsInfluxDBUsernameFlag.Name)
 			password = ctx.GlobalString(swarmmetrics.MetricsInfluxDBPasswordFlag.Name)
-			tags     = ctx.GlobalString(swarmmetrics.MetricsInfluxDBTagsFlag.Name)
+			hosttag  = ctx.GlobalString(swarmmetrics.MetricsInfluxDBHostTagFlag.Name)
 		)
-
-		tagsMap := utils.SplitTagsFlag(tags)
-		tagsMap["version"] = gitCommit
-		tagsMap["filesize"] = fmt.Sprintf("%v", filesize)
-
-		return influxdb.InfluxDBWithTagsOnce(gethmetrics.DefaultRegistry, endpoint, database, username, password, "swarm-smoke.", tagsMap)
+		return influxdb.InfluxDBWithTagsOnce(gethmetrics.DefaultRegistry, endpoint, database, username, password, "swarm-smoke.", map[string]string{
+			"host":     hosttag,
+			"version":  gitCommit,
+			"filesize": fmt.Sprintf("%v", filesize),
+		})
 	}
 
 	return nil

@@ -108,6 +108,7 @@ type BlockChain struct {
 	scope         event.SubscriptionScope
 	genesisBlock  *types.Block
 
+	mu      sync.RWMutex // global mutex for locking chain operations
 	chainmu sync.RWMutex // blockchain insertion lock
 	procmu  sync.RWMutex // block processor lock
 
@@ -280,8 +281,8 @@ func (bc *BlockChain) loadLastState() error {
 func (bc *BlockChain) SetHead(head uint64) error {
 	log.Warn("Rewinding blockchain", "target", head)
 
-	bc.chainmu.Lock()
-	defer bc.chainmu.Unlock()
+	bc.mu.Lock()
+	defer bc.mu.Unlock()
 
 	// Rewind the header chain, deleting all block bodies until then
 	delFn := func(db rawdb.DatabaseDeleter, hash common.Hash, num uint64) {
@@ -339,9 +340,9 @@ func (bc *BlockChain) FastSyncCommitHead(hash common.Hash) error {
 		return err
 	}
 	// If all checks out, manually set the head block
-	bc.chainmu.Lock()
+	bc.mu.Lock()
 	bc.currentBlock.Store(block)
-	bc.chainmu.Unlock()
+	bc.mu.Unlock()
 
 	log.Info("Committed new head block", "number", block.Number(), "hash", hash)
 	return nil
@@ -419,8 +420,8 @@ func (bc *BlockChain) ResetWithGenesisBlock(genesis *types.Block) error {
 	if err := bc.SetHead(0); err != nil {
 		return err
 	}
-	bc.chainmu.Lock()
-	defer bc.chainmu.Unlock()
+	bc.mu.Lock()
+	defer bc.mu.Unlock()
 
 	// Prepare the genesis block and reinitialise the chain
 	if err := bc.hc.WriteTd(genesis.Hash(), genesis.NumberU64(), genesis.Difficulty()); err != nil {
@@ -467,8 +468,8 @@ func (bc *BlockChain) Export(w io.Writer) error {
 
 // ExportN writes a subset of the active chain to the given writer.
 func (bc *BlockChain) ExportN(w io.Writer, first uint64, last uint64) error {
-	bc.chainmu.RLock()
-	defer bc.chainmu.RUnlock()
+	bc.mu.RLock()
+	defer bc.mu.RUnlock()
 
 	if first > last {
 		return fmt.Errorf("export failed: first (%d) is greater than last (%d)", first, last)
@@ -489,6 +490,7 @@ func (bc *BlockChain) ExportN(w io.Writer, first uint64, last uint64) error {
 			reported = time.Now()
 		}
 	}
+
 	return nil
 }
 
@@ -644,9 +646,6 @@ func (bc *BlockChain) GetReceiptsByHash(hash common.Hash) types.Receipts {
 		return nil
 	}
 	receipts := rawdb.ReadReceipts(bc.db, hash, *number)
-	if receipts == nil {
-		return nil
-	}
 	bc.receiptsCache.Add(hash, receipts)
 	return receipts
 }
@@ -757,8 +756,8 @@ const (
 // Rollback is designed to remove a chain of links from the database that aren't
 // certain enough to be valid.
 func (bc *BlockChain) Rollback(chain []common.Hash) {
-	bc.chainmu.Lock()
-	defer bc.chainmu.Unlock()
+	bc.mu.Lock()
+	defer bc.mu.Unlock()
 
 	for i := len(chain) - 1; i >= 0; i-- {
 		hash := chain[i]
@@ -882,7 +881,7 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 	}
 
 	// Update the head fast sync block if better
-	bc.chainmu.Lock()
+	bc.mu.Lock()
 	head := blockChain[len(blockChain)-1]
 	if td := bc.GetTd(head.Hash(), head.NumberU64()); td != nil { // Rewind may have occurred, skip in that case
 		currentFastBlock := bc.CurrentFastBlock()
@@ -891,7 +890,7 @@ func (bc *BlockChain) InsertReceiptChain(blockChain types.Blocks, receiptChain [
 			bc.currentFastBlock.Store(head)
 		}
 	}
-	bc.chainmu.Unlock()
+	bc.mu.Unlock()
 
 	context := []interface{}{
 		"count", stats.processed, "elapsed", common.PrettyDuration(time.Since(start)),
@@ -925,15 +924,6 @@ func (bc *BlockChain) WriteBlockWithoutState(block *types.Block, td *big.Int) (e
 
 // WriteBlockWithState writes the block and all associated state to the database.
 func (bc *BlockChain) WriteBlockWithState(block *types.Block, receipts []*types.Receipt, state *state.StateDB) (status WriteStatus, err error) {
-	bc.chainmu.Lock()
-	defer bc.chainmu.Unlock()
-
-	return bc.writeBlockWithState(block, receipts, state)
-}
-
-// writeBlockWithState writes the block and all associated state to the database,
-// but is expects the chain mutex to be held.
-func (bc *BlockChain) writeBlockWithState(block *types.Block, receipts []*types.Receipt, state *state.StateDB) (status WriteStatus, err error) {
 	bc.wg.Add(1)
 	defer bc.wg.Done()
 
@@ -943,6 +933,9 @@ func (bc *BlockChain) writeBlockWithState(block *types.Block, receipts []*types.
 		return NonStatTy, consensus.ErrUnknownAncestor
 	}
 	// Make sure no inconsistent state is leaked during insertion
+	bc.mu.Lock()
+	defer bc.mu.Unlock()
+
 	currentBlock := bc.CurrentBlock()
 	localTd := bc.GetTd(currentBlock.Hash(), currentBlock.NumberU64())
 	externTd := new(big.Int).Add(block.Difficulty(), ptd)
@@ -1219,7 +1212,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 		proctime := time.Since(start)
 
 		// Write the block to the chain and get the status.
-		status, err := bc.writeBlockWithState(block, receipts, state)
+		status, err := bc.WriteBlockWithState(block, receipts, state)
 		t3 := time.Now()
 		if err != nil {
 			return it.index, events, coalescedLogs, err
@@ -1288,7 +1281,7 @@ func (bc *BlockChain) insertChain(chain types.Blocks, verifySeals bool) (int, []
 func (bc *BlockChain) insertSidechain(it *insertIterator) (int, []interface{}, []*types.Log, error) {
 	var (
 		externTd *big.Int
-		current  = bc.CurrentBlock()
+		current  = bc.CurrentBlock().NumberU64()
 	)
 	// The first sidechain block error is already verified to be ErrPrunedAncestor.
 	// Since we don't import them here, we expect ErrUnknownAncestor for the remaining
@@ -1297,7 +1290,7 @@ func (bc *BlockChain) insertSidechain(it *insertIterator) (int, []interface{}, [
 	block, err := it.current(), consensus.ErrPrunedAncestor
 	for ; block != nil && (err == consensus.ErrPrunedAncestor); block, err = it.next() {
 		// Check the canonical state root for that number
-		if number := block.NumberU64(); current.NumberU64() >= number {
+		if number := block.NumberU64(); current >= number {
 			if canonical := bc.GetBlockByNumber(number); canonical != nil && canonical.Root() == block.Root() {
 				// This is most likely a shadow-state attack. When a fork is imported into the
 				// database, and it eventually reaches a block height which is not pruned, we
@@ -1336,7 +1329,7 @@ func (bc *BlockChain) insertSidechain(it *insertIterator) (int, []interface{}, [
 	//
 	// If the externTd was larger than our local TD, we now need to reimport the previous
 	// blocks to regenerate the required state
-	localTd := bc.GetTd(current.Hash(), current.NumberU64())
+	localTd := bc.GetTd(bc.CurrentBlock().Hash(), current)
 	if localTd.Cmp(externTd) > 0 {
 		log.Info("Sidechain written to disk", "start", it.first().NumberU64(), "end", it.previous().NumberU64(), "sidetd", externTd, "localtd", localTd)
 		return it.index, nil, nil, err
@@ -1604,10 +1597,34 @@ func (bc *BlockChain) InsertHeaderChain(chain []*types.Header, checkFreq int) (i
 	defer bc.wg.Done()
 
 	whFunc := func(header *types.Header) error {
+		bc.mu.Lock()
+		defer bc.mu.Unlock()
+
 		_, err := bc.hc.WriteHeader(header)
 		return err
 	}
+
 	return bc.hc.InsertHeaderChain(chain, whFunc, start)
+}
+
+// writeHeader writes a header into the local chain, given that its parent is
+// already known. If the total difficulty of the newly inserted header becomes
+// greater than the current known TD, the canonical chain is re-routed.
+//
+// Note: This method is not concurrent-safe with inserting blocks simultaneously
+// into the chain, as side effects caused by reorganisations cannot be emulated
+// without the real blocks. Hence, writing headers directly should only be done
+// in two scenarios: pure-header mode of operation (light clients), or properly
+// separated header/block phases (non-archive clients).
+func (bc *BlockChain) writeHeader(header *types.Header) error {
+	bc.wg.Add(1)
+	defer bc.wg.Done()
+
+	bc.mu.Lock()
+	defer bc.mu.Unlock()
+
+	_, err := bc.hc.WriteHeader(header)
+	return err
 }
 
 // CurrentHeader retrieves the current head header of the canonical chain. The
@@ -1658,8 +1675,8 @@ func (bc *BlockChain) GetBlockHashesFromHash(hash common.Hash, max uint64) []com
 //
 // Note: ancestor == 0 returns the same block, 1 returns its parent and so on.
 func (bc *BlockChain) GetAncestor(hash common.Hash, number, ancestor uint64, maxNonCanonical *uint64) (common.Hash, uint64) {
-	bc.chainmu.RLock()
-	defer bc.chainmu.RUnlock()
+	bc.chainmu.Lock()
+	defer bc.chainmu.Unlock()
 
 	return bc.hc.GetAncestor(hash, number, ancestor, maxNonCanonical)
 }

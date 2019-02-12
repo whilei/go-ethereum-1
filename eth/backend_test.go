@@ -1,6 +1,7 @@
 package eth
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/rpc"
@@ -84,10 +85,12 @@ func TestSwagger(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// b, err := json.MarshalIndent(sw, "", "    ")
-	// if err != nil {
-	// t.Fatal(err)
-	// }
-	t.Log(string(b))
+	bs, err := json.MarshalIndent(b, "", "    ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(string(bs))
+	// t.Log("stuff")
+	// t.Log(b.OpenAPI)
 	// }
 }

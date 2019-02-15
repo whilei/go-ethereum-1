@@ -35,7 +35,7 @@ import (
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/simulations/adapters"
 	"github.com/ethereum/go-ethereum/rpc"
-	"github.com/mattn/go-colorable"
+	colorable "github.com/mattn/go-colorable"
 )
 
 var (
@@ -294,7 +294,6 @@ var testServices = adapters.Services{
 }
 
 func testHTTPServer(t *testing.T) (*Network, *httptest.Server) {
-	t.Helper()
 	adapter := adapters.NewSimAdapter(testServices)
 	network := NewNetwork(adapter, &NetworkConfig{
 		DefaultService: "test",

@@ -359,7 +359,7 @@ func (r *Registry) Subscribe(peerId enode.ID, s Stream, h *Range, priority uint8
 	}
 	log.Debug("Subscribe ", "peer", peerId, "stream", s, "history", h)
 
-	return peer.SendPriority(context.TODO(), msg, priority)
+	return peer.SendPriority(context.TODO(), msg, priority, "")
 }
 
 func (r *Registry) Unsubscribe(peerId enode.ID, s Stream) error {
@@ -671,16 +671,17 @@ func peerStreamIntervalsKey(p *Peer, s Stream) string {
 	return p.ID().String() + s.String()
 }
 
-func (c *client) AddInterval(start, end uint64) (err error) {
+func (c client) AddInterval(start, end uint64) (err error) {
 	i := &intervals.Intervals{}
-	if err = c.intervalsStore.Get(c.intervalsKey, i); err != nil {
+	err = c.intervalsStore.Get(c.intervalsKey, i)
+	if err != nil {
 		return err
 	}
 	i.Add(start, end)
 	return c.intervalsStore.Put(c.intervalsKey, i)
 }
 
-func (c *client) NextInterval() (start, end uint64, err error) {
+func (c client) NextInterval() (start, end uint64, err error) {
 	i := &intervals.Intervals{}
 	err = c.intervalsStore.Get(c.intervalsKey, i)
 	if err != nil {
@@ -729,7 +730,8 @@ func (c *client) batchDone(p *Peer, req *OfferedHashesMsg, hashes []byte) error 
 		if err != nil {
 			return err
 		}
-		if err := p.SendPriority(context.TODO(), tp, c.priority); err != nil {
+
+		if err := p.SendPriority(context.TODO(), tp, c.priority, ""); err != nil {
 			return err
 		}
 		if c.to > 0 && tp.Takeover.End >= c.to {
@@ -737,7 +739,11 @@ func (c *client) batchDone(p *Peer, req *OfferedHashesMsg, hashes []byte) error 
 		}
 		return nil
 	}
-	return c.AddInterval(req.From, req.To)
+	// TODO: make a test case for testing if the interval is added when the batch is done
+	if err := c.AddInterval(req.From, req.To); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *client) close() {
@@ -938,16 +944,22 @@ It returns a map of node IDs with an array of string representations of Stream o
 func (api *API) GetPeerSubscriptions() map[string][]string {
 	//create the empty map
 	pstreams := make(map[string][]string)
+
 	//iterate all streamer peers
+	api.streamer.peersMu.RLock()
+	defer api.streamer.peersMu.RUnlock()
+
 	for id, p := range api.streamer.peers {
 		var streams []string
 		//every peer has a map of stream servers
 		//every stream server represents a subscription
+		p.serverMu.RLock()
 		for s := range p.servers {
 			//append the string representation of the stream
 			//to the list for this peer
 			streams = append(streams, s.String())
 		}
+		p.serverMu.RUnlock()
 		//set the array of stream servers to the map
 		pstreams[id.String()] = streams
 	}
